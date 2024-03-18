@@ -1,7 +1,7 @@
 use super::Color;
 
 /// [Color] impl for a simulation purpose.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum PuyoColor {
     EMPTY = 0,
     WALL = 1,

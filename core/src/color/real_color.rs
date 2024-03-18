@@ -1,7 +1,7 @@
 use super::Color;
 
 /// [Color] impl for an actual game.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum RealColor {
     EMPTY = 0,
     WALL = 1,
