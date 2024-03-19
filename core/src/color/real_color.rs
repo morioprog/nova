@@ -13,6 +13,12 @@ pub enum RealColor {
     PURPLE = 7,
 }
 
+impl Default for RealColor {
+    fn default() -> Self {
+        RealColor::EMPTY
+    }
+}
+
 impl Color for RealColor {
     fn to_char(&self) -> char {
         match self {

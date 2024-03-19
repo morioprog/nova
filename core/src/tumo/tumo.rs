@@ -3,7 +3,7 @@ use crate::color::{Color, PuyoColor, RealColor};
 pub type Tumo = Pair<PuyoColor>;
 pub type RealTumo = Pair<RealColor>;
 
-#[derive(PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Default)]
 pub struct Pair<C: Color> {
     axis: C,
     child: C,
@@ -12,6 +12,18 @@ pub struct Pair<C: Color> {
 impl<C: Color> Pair<C> {
     pub fn new(axis: C, child: C) -> Self {
         Self { axis, child }
+    }
+
+    pub fn new_zoro(axis: C) -> Self {
+        Self { axis, child: axis }
+    }
+
+    pub const fn axis(&self) -> C {
+        self.axis
+    }
+
+    pub const fn child(&self) -> C {
+        self.child
     }
 
     pub fn is_zoro(&self) -> bool {
@@ -26,18 +38,25 @@ impl<C: Color> Pair<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color::PuyoColor::{BLUE, RED, WALL};
+    use crate::color::PuyoColor::*;
 
     #[test]
     fn new() {
         let tumo = Tumo::new(BLUE, RED);
-        assert_eq!(tumo.axis, BLUE);
-        assert_eq!(tumo.child, RED);
+        assert_eq!(tumo.axis(), BLUE);
+        assert_eq!(tumo.child(), RED);
+    }
+
+    #[test]
+    fn new_zoro() {
+        let tumo = Tumo::new_zoro(GREEN);
+        assert_eq!(tumo.axis(), GREEN);
+        assert_eq!(tumo.child(), GREEN);
     }
 
     #[test]
     fn is_zoro() {
-        assert_eq!(Tumo::new(BLUE, BLUE).is_zoro(), true);
+        assert_eq!(Tumo::new(GREEN, GREEN).is_zoro(), true);
         assert_eq!(Tumo::new(RED, BLUE).is_zoro(), false);
     }
 
@@ -46,6 +65,6 @@ mod tests {
         assert_eq!(Tumo::new(BLUE, BLUE).is_valid(), true);
         assert_eq!(Tumo::new(RED, BLUE).is_valid(), true);
         assert_eq!(Tumo::new(BLUE, WALL).is_valid(), false);
-        assert_eq!(Tumo::new(WALL, WALL).is_valid(), false);
+        assert_eq!(Tumo::new(WALL, EMPTY).is_valid(), false);
     }
 }

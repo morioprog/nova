@@ -13,6 +13,12 @@ pub enum PuyoColor {
     YELLOW = 7,
 }
 
+impl Default for PuyoColor {
+    fn default() -> Self {
+        PuyoColor::EMPTY
+    }
+}
+
 impl Color for PuyoColor {
     fn to_char(&self) -> char {
         match self {
