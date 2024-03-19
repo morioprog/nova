@@ -6,5 +6,5 @@ pub use self::{
     tumos::{RealTumos, Tumos},
 };
 
-// Loop length of tumo.
+/// Loop length of tumo.
 pub const TUMO_LOOP: usize = 128;
