@@ -38,6 +38,22 @@ impl Color for PuyoColor {
     }
 }
 
+impl From<u8> for PuyoColor {
+    fn from(value: u8) -> Self {
+        match value {
+            b' ' | b'.' => PuyoColor::EMPTY,
+            b'O' | b'o' | b'@' => PuyoColor::OJAMA,
+            b'#' => PuyoColor::WALL,
+            b'&' => PuyoColor::IRON,
+            b'R' | b'r' => PuyoColor::RED,
+            b'G' | b'g' => PuyoColor::GREEN,
+            b'B' | b'b' => PuyoColor::BLUE,
+            b'Y' | b'y' => PuyoColor::YELLOW,
+            _ => unreachable!(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

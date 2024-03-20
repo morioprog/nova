@@ -1,22 +1,45 @@
 use std::{arch::x86_64::*, mem, simd::*};
 
-use super::BoardManipulation;
-use crate::board::{ENTIRE_HEIGHT, ENTIRE_WIDTH};
+use super::BoardOps;
+use crate::board::{ENTIRE_HEIGHT, ENTIRE_WIDTH, WIDTH};
 
 #[repr(align(16))]
 #[derive(Clone, Copy)]
 pub struct BoardBits(__m128i);
 
-impl BoardManipulation for BoardBits {
+impl BoardOps for BoardBits {
     fn zero() -> Self {
         unsafe { Self(_mm_setzero_si128()) }
     }
 
-    // TODO: can we make trait members const fn?
     fn wall() -> Self {
         unsafe {
             mem::transmute(u16x8::from_array([
                 0xFFFF, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0xFFFF,
+            ]))
+        }
+    }
+
+    fn board_mask_12() -> Self {
+        unsafe {
+            mem::transmute(u16x8::from_array([
+                0x0000, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x0000,
+            ]))
+        }
+    }
+
+    fn board_mask_13() -> Self {
+        unsafe {
+            mem::transmute(u16x8::from_array([
+                0x0000, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x0000,
+            ]))
+        }
+    }
+
+    fn full_mask() -> Self {
+        unsafe {
+            mem::transmute(u16x8::from_array([
+                0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
             ]))
         }
     }
@@ -31,34 +54,35 @@ impl BoardManipulation for BoardBits {
         unsafe { mem::transmute(u64x2::from_array([lo << shift, hi << shift])) }
     }
 
-    fn mask(&self, mask: Self) -> Self {
-        *self & mask
-    }
-
-    fn mask_12(&self) -> Self {
-        self.mask(unsafe { Self::board_mask_12() })
-    }
-
-    fn mask_13(&self) -> Self {
-        self.mask(unsafe { Self::board_mask_13() })
-    }
-
-    fn not_mask(&self, mask: Self) -> Self {
-        unsafe { mask.andnot(*self) }
-    }
-
-    fn not_mask_12(&self) -> Self {
-        self.not_mask(unsafe { Self::board_mask_12() })
-    }
-
-    fn not_mask_13(&self) -> Self {
-        self.not_mask(unsafe { Self::board_mask_13() })
+    fn andnot(&self, rhs: Self) -> Self {
+        Self(unsafe { _mm_andnot_si128(self.0, rhs.0) })
     }
 
     fn get(&self, x: usize, y: usize) -> u8 {
         debug_assert!(Self::within_bound(x, y));
 
-        unsafe { _mm_testz_si128(Self::onebit(x, y).0, self.0) as u8 ^ 1 }
+        unsafe { _mm_test_all_zeros(Self::onebit(x, y).0, self.0) as u8 ^ 1 }
+    }
+
+    fn set_0(&mut self, x: usize, y: usize) {
+        debug_assert!(Self::within_bound(x, y));
+
+        self.0 = Self::onebit(x, y).andnot(*self).0
+    }
+
+    fn set_1(&mut self, x: usize, y: usize) {
+        debug_assert!(Self::within_bound(x, y));
+
+        self.0 = (*self | Self::onebit(x, y)).0
+    }
+}
+
+impl PartialEq<Self> for BoardBits {
+    fn eq(&self, other: &Self) -> bool {
+        unsafe {
+            let xor = _mm_xor_si128(self.0, other.0);
+            _mm_test_all_zeros(xor, xor) == 1
+        }
     }
 }
 
@@ -70,32 +94,47 @@ impl std::ops::BitAnd for BoardBits {
     }
 }
 
+impl std::ops::BitOr for BoardBits {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(unsafe { _mm_or_si128(self.0, rhs.0) })
+    }
+}
+
+impl std::ops::BitXor for BoardBits {
+    type Output = Self;
+
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        Self(unsafe { _mm_xor_si128(self.0, rhs.0) })
+    }
+}
+
+impl From<&'static str> for BoardBits
+where
+    Self: BoardOps,
+{
+    fn from(value: &'static str) -> Self {
+        debug_assert!(value.len() % WIDTH == 0);
+
+        let mut bb = Self::zero();
+
+        for (_y, chunk) in value.as_bytes().chunks(WIDTH).rev().enumerate() {
+            for (_x, c) in chunk.iter().enumerate() {
+                if c == &b'1' {
+                    // x and y are both one-based
+                    bb.set_1(_x + 1, _y + 1);
+                }
+            }
+        }
+
+        bb
+    }
+}
+
 impl BoardBits {
     const fn within_bound(x: usize, y: usize) -> bool {
         x < ENTIRE_WIDTH && y < ENTIRE_HEIGHT
-    }
-
-    /// Calculate `(~a) & b`.
-    unsafe fn andnot(&self, rhs: Self) -> Self {
-        Self(_mm_andnot_si128(self.0, rhs.0))
-    }
-
-    const unsafe fn board_mask_full() -> Self {
-        mem::transmute(u16x8::from_array([
-            0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
-        ]))
-    }
-
-    const unsafe fn board_mask_12() -> Self {
-        mem::transmute(u16x8::from_array([
-            0x0000, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x0000,
-        ]))
-    }
-
-    const unsafe fn board_mask_13() -> Self {
-        mem::transmute(u16x8::from_array([
-            0x0000, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x0000,
-        ]))
     }
 }
 
@@ -105,33 +144,25 @@ mod tests {
     use crate::board::{HEIGHT, WIDTH};
 
     #[test]
-    fn wall() {
+    fn constructors() {
+        let zero = BoardBits::zero();
         let wall = BoardBits::wall();
-
-        for x in 0..ENTIRE_WIDTH {
-            for y in 0..ENTIRE_HEIGHT {
-                assert_eq!(
-                    wall.get(x, y) == 1,
-                    x == 0 || x == ENTIRE_WIDTH - 1 || y == 0 || y == ENTIRE_HEIGHT - 1,
-                    "wall is incorrect at (x: {}, y: {})",
-                    x,
-                    y
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn mask() {
-        let mask_full = unsafe { BoardBits::board_mask_full() };
-        let mask_12 = mask_full.mask_12();
-        let mask_13 = mask_full.mask_13();
+        let mask_12 = BoardBits::board_mask_12();
+        let mask_13 = BoardBits::board_mask_13();
+        let full_mask = BoardBits::full_mask();
 
         for x in 0..ENTIRE_WIDTH {
             for y in 0..ENTIRE_HEIGHT {
                 assert!(
-                    mask_full.get(x, y) == 1,
-                    "mask_full is incorrect at (x: {}, y: {})",
+                    zero.get(x, y) == 0,
+                    "zero is incorrect at (x: {}, y: {})",
+                    x,
+                    y
+                );
+                assert_eq!(
+                    wall.get(x, y) == 1,
+                    x == 0 || x == ENTIRE_WIDTH - 1 || y == 0 || y == ENTIRE_HEIGHT - 1,
+                    "wall is incorrect at (x: {}, y: {})",
                     x,
                     y
                 );
@@ -149,39 +180,46 @@ mod tests {
                     x,
                     y
                 );
+                assert!(
+                    full_mask.get(x, y) == 1,
+                    "full_mask is incorrect at (x: {}, y: {})",
+                    x,
+                    y
+                );
             }
         }
     }
 
     #[test]
-    fn not_mask() {
-        let mask_full = unsafe { BoardBits::board_mask_full() };
-        let not_mask_12 = mask_full.not_mask_12();
-        let not_mask_13 = mask_full.not_mask_13();
+    fn from_str() {
+        let bb = BoardBits::from(concat!(
+            "11..1.", // 2
+            ".1...1", // 1
+        ));
 
-        for x in 0..ENTIRE_WIDTH {
-            for y in 0..ENTIRE_HEIGHT {
-                assert!(
-                    mask_full.get(x, y) == 1,
-                    "mask_full is incorrect at (x: {}, y: {})",
-                    x,
-                    y
-                );
-                assert_eq!(
-                    not_mask_12.get(x, y) == 1,
-                    x < 1 || x > WIDTH || y < 1 || y > HEIGHT,
-                    "not_mask_12 is incorrect at (x: {}, y: {})",
-                    x,
-                    y
-                );
-                assert_eq!(
-                    not_mask_13.get(x, y) == 1,
-                    x < 1 || x > WIDTH || y < 1 || y > HEIGHT + 1,
-                    "not_mask_13 is incorrect at (x: {}, y: {})",
-                    x,
-                    y
-                );
-            }
-        }
+        assert_eq!(bb.get(1, 1), 0);
+        assert_eq!(bb.get(2, 1), 1);
+        assert_eq!(bb.get(3, 1), 0);
+        assert_eq!(bb.get(4, 1), 0);
+        assert_eq!(bb.get(5, 1), 0);
+        assert_eq!(bb.get(6, 1), 1);
+        assert_eq!(bb.get(1, 2), 1);
+        assert_eq!(bb.get(2, 2), 1);
+        assert_eq!(bb.get(3, 2), 0);
+        assert_eq!(bb.get(4, 2), 0);
+        assert_eq!(bb.get(5, 2), 1);
+        assert_eq!(bb.get(6, 2), 0);
+    }
+
+    #[test]
+    fn get_set() {
+        let mut bb = BoardBits::zero();
+        assert_eq!(bb.get(2, 3), 0);
+
+        bb.set_1(2, 3);
+        assert_eq!(bb.get(2, 3), 1);
+
+        bb.set_0(2, 3);
+        assert_eq!(bb.get(2, 3), 0);
     }
 }
