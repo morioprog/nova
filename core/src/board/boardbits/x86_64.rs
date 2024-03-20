@@ -43,6 +43,18 @@ impl BoardManipulation for BoardBits {
         self.mask(unsafe { Self::board_mask_13() })
     }
 
+    fn not_mask(&self, mask: Self) -> Self {
+        unsafe { mask.andnot(*self) }
+    }
+
+    fn not_mask_12(&self) -> Self {
+        self.not_mask(unsafe { Self::board_mask_12() })
+    }
+
+    fn not_mask_13(&self) -> Self {
+        self.not_mask(unsafe { Self::board_mask_13() })
+    }
+
     fn get(&self, x: usize, y: usize) -> bool {
         debug_assert!(Self::within_bound(x, y));
 
@@ -61,6 +73,11 @@ impl std::ops::BitAnd for BoardBits {
 impl BoardBits {
     const fn within_bound(x: usize, y: usize) -> bool {
         x < ENTIRE_WIDTH && y < ENTIRE_HEIGHT
+    }
+
+    /// Calculate `(~a) & b`.
+    unsafe fn andnot(&self, rhs: Self) -> Self {
+        Self(_mm_andnot_si128(self.0, rhs.0))
     }
 
     const unsafe fn board_mask_full() -> Self {
@@ -129,6 +146,38 @@ mod tests {
                     mask_13.get(x, y),
                     1 <= x && x <= WIDTH && 1 <= y && y <= HEIGHT + 1,
                     "mask_13 is incorrect at (x: {}, y: {})",
+                    x,
+                    y
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn not_mask() {
+        let mask_full = unsafe { BoardBits::board_mask_full() };
+        let not_mask_12 = mask_full.not_mask_12();
+        let not_mask_13 = mask_full.not_mask_13();
+
+        for x in 0..ENTIRE_WIDTH {
+            for y in 0..ENTIRE_HEIGHT {
+                assert!(
+                    mask_full.get(x, y),
+                    "mask_full is incorrect at (x: {}, y: {})",
+                    x,
+                    y
+                );
+                assert_eq!(
+                    not_mask_12.get(x, y),
+                    x < 1 || x > WIDTH || y < 1 || y > HEIGHT,
+                    "not_mask_12 is incorrect at (x: {}, y: {})",
+                    x,
+                    y
+                );
+                assert_eq!(
+                    not_mask_13.get(x, y),
+                    x < 1 || x > WIDTH || y < 1 || y > HEIGHT + 1,
+                    "not_mask_13 is incorrect at (x: {}, y: {})",
                     x,
                     y
                 );
