@@ -12,9 +12,9 @@ impl Board {
     }
 
     pub fn get(&self, x: usize, y: usize) -> PuyoColor {
-        let b0: u8 = self.0.get(x, y) as u8;
-        let b1: u8 = (self.1.get(x, y) as u8) << 1;
-        let b2: u8 = (self.2.get(x, y) as u8) << 2;
+        let b0 = self.0.get(x, y);
+        let b1 = self.1.get(x, y) << 1;
+        let b2 = self.2.get(x, y) << 2;
 
         unsafe { mem::transmute(b0 | b1 | b2) }
     }

@@ -55,10 +55,10 @@ impl BoardManipulation for BoardBits {
         self.not_mask(unsafe { Self::board_mask_13() })
     }
 
-    fn get(&self, x: usize, y: usize) -> bool {
+    fn get(&self, x: usize, y: usize) -> u8 {
         debug_assert!(Self::within_bound(x, y));
 
-        unsafe { _mm_testz_si128(Self::onebit(x, y).0, self.0) == 0 }
+        unsafe { _mm_testz_si128(Self::onebit(x, y).0, self.0) as u8 ^ 1 }
     }
 }
 
@@ -111,7 +111,7 @@ mod tests {
         for x in 0..ENTIRE_WIDTH {
             for y in 0..ENTIRE_HEIGHT {
                 assert_eq!(
-                    wall.get(x, y),
+                    wall.get(x, y) == 1,
                     x == 0 || x == ENTIRE_WIDTH - 1 || y == 0 || y == ENTIRE_HEIGHT - 1,
                     "wall is incorrect at (x: {}, y: {})",
                     x,
@@ -130,20 +130,20 @@ mod tests {
         for x in 0..ENTIRE_WIDTH {
             for y in 0..ENTIRE_HEIGHT {
                 assert!(
-                    mask_full.get(x, y),
+                    mask_full.get(x, y) == 1,
                     "mask_full is incorrect at (x: {}, y: {})",
                     x,
                     y
                 );
                 assert_eq!(
-                    mask_12.get(x, y),
+                    mask_12.get(x, y) == 1,
                     1 <= x && x <= WIDTH && 1 <= y && y <= HEIGHT,
                     "mask_12 is incorrect at (x: {}, y: {})",
                     x,
                     y
                 );
                 assert_eq!(
-                    mask_13.get(x, y),
+                    mask_13.get(x, y) == 1,
                     1 <= x && x <= WIDTH && 1 <= y && y <= HEIGHT + 1,
                     "mask_13 is incorrect at (x: {}, y: {})",
                     x,
@@ -162,20 +162,20 @@ mod tests {
         for x in 0..ENTIRE_WIDTH {
             for y in 0..ENTIRE_HEIGHT {
                 assert!(
-                    mask_full.get(x, y),
+                    mask_full.get(x, y) == 1,
                     "mask_full is incorrect at (x: {}, y: {})",
                     x,
                     y
                 );
                 assert_eq!(
-                    not_mask_12.get(x, y),
+                    not_mask_12.get(x, y) == 1,
                     x < 1 || x > WIDTH || y < 1 || y > HEIGHT,
                     "not_mask_12 is incorrect at (x: {}, y: {})",
                     x,
                     y
                 );
                 assert_eq!(
-                    not_mask_13.get(x, y),
+                    not_mask_13.get(x, y) == 1,
                     x < 1 || x > WIDTH || y < 1 || y > HEIGHT + 1,
                     "not_mask_13 is incorrect at (x: {}, y: {})",
                     x,

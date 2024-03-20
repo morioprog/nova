@@ -22,5 +22,5 @@ pub(crate) trait BoardManipulation {
     fn not_mask_12(&self) -> Self;
     fn not_mask_13(&self) -> Self;
 
-    fn get(&self, x: usize, y: usize) -> bool;
+    fn get(&self, x: usize, y: usize) -> u8;
 }
