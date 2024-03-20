@@ -1,17 +1,18 @@
 use std::{arch::x86_64::*, mem, simd::*};
 
+use super::BoardManipulation;
 use crate::board::{ENTIRE_HEIGHT, ENTIRE_WIDTH};
 
+#[repr(align(16))]
 pub struct BoardBits(__m128i);
 
-// TODO: define trait to make this reusable
-impl BoardBits {
-    pub fn zero() -> Self {
+impl BoardManipulation for BoardBits {
+    fn zero() -> Self {
         unsafe { Self(_mm_setzero_si128()) }
     }
 
     // TODO: can we make trait members const fn?
-    pub fn wall() -> Self {
+    fn wall() -> Self {
         unsafe {
             mem::transmute(u16x8::from_array([
                 0xFFFF, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0xFFFF,
@@ -19,7 +20,7 @@ impl BoardBits {
         }
     }
 
-    pub fn onebit(x: usize, y: usize) -> Self {
+    fn onebit(x: usize, y: usize) -> Self {
         debug_assert!(Self::within_bound(x, y));
 
         let shift = ((x << 4) | y) & 0x3F; // x << 4: choose column by multiplying 16
@@ -29,7 +30,7 @@ impl BoardBits {
         unsafe { mem::transmute(u64x2::from_array([lo << shift, hi << shift])) }
     }
 
-    pub fn get(&self, x: usize, y: usize) -> bool {
+    fn get(&self, x: usize, y: usize) -> bool {
         debug_assert!(Self::within_bound(x, y));
 
         unsafe { _mm_testz_si128(Self::onebit(x, y).0, self.0) == 0 }

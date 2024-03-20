@@ -1,6 +1,6 @@
 use std::mem;
 
-use super::boardbits::BoardBits;
+use super::boardbits::{BoardBits, BoardManipulation};
 use crate::{chain::Chain, color::PuyoColor};
 
 pub struct Board(BoardBits, BoardBits, BoardBits);
