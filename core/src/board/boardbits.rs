@@ -34,11 +34,17 @@ pub(super) trait BoardOps:
 
     /// Calculate `(~a) & b`.
     fn andnot(&self, rhs: Self) -> Self;
+    fn shift_up(&self) -> Self;
+    fn shift_down(&self) -> Self;
+    fn shift_left(&self) -> Self;
+    fn shift_right(&self) -> Self;
 
     // getter / setter
     fn get(&self, x: usize, y: usize) -> u8;
     fn set_0(&mut self, x: usize, y: usize);
     fn set_1(&mut self, x: usize, y: usize);
+
+    fn is_zero(&self) -> bool;
 }
 
 impl BoardBits {
@@ -69,6 +75,38 @@ impl BoardBits {
         } else {
             self.set_1(x, y)
         }
+    }
+
+    pub fn expand_1(&self, mask: Self) -> Self {
+        mask & (*self
+            | (self.shift_up() | self.shift_down())
+            | (self.shift_left() | self.shift_right()))
+    }
+
+    pub fn popping_bits(&self) -> Option<Self> {
+        let u = *self & self.shift_up();
+        let d = *self & self.shift_down();
+        let l = *self & self.shift_left();
+        let r = *self & self.shift_right();
+
+        let (ud_and, ud_or) = (u & d, u | d);
+        let (lr_and, lr_or) = (l & r, l | r);
+
+        let threes = (ud_and & lr_or) | (lr_and & ud_or);
+        let twos = ud_and | lr_and | (ud_or & lr_or);
+
+        let two_u = twos & twos.shift_up();
+        let two_l = twos & twos.shift_left();
+
+        let pb = threes | two_u | two_l;
+        if pb.is_zero() {
+            return None;
+        }
+
+        let two_d = twos & twos.shift_down();
+        let two_r = twos & twos.shift_right();
+
+        Some((pb | two_d | two_r).expand_1(*self))
     }
 }
 
@@ -159,5 +197,50 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn expand_1() {
+        assert_eq!(
+            BoardBits::onebit(3, 2).expand_1(BoardBits::full_mask()),
+            BoardBits::from(concat!(
+                "..1...", // 3
+                ".111..", // 2
+                "..1...", // 1
+            ))
+        );
+        assert_eq!(
+            BoardBits::onebit(3, 2).expand_1(BoardBits::from(concat!(
+                "111111", // 2
+                "111111", // 1
+            ))),
+            BoardBits::from(concat!(
+                ".111..", // 2
+                "..1...", // 1
+            ))
+        );
+    }
+
+    #[test]
+    fn popping_bits() {
+        let bb = BoardBits::from(concat!(
+            "1...11", // 6
+            "1.1.11", // 5
+            "1.1.1.", // 4
+            "1.11.1", // 3
+            ".1..11", // 2
+            "111.1.", // 1
+        ));
+        assert_eq!(bb.popping_bits(), Some(bb));
+
+        assert!(BoardBits::from(concat!(
+            "11.111", // 5
+            "..1...", // 4
+            "11.1..", // 3
+            ".1.1.1", // 2
+            "1.1.11", // 1
+        ))
+        .popping_bits()
+        .is_none());
     }
 }
