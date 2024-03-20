@@ -4,6 +4,7 @@ use super::BoardManipulation;
 use crate::board::{ENTIRE_HEIGHT, ENTIRE_WIDTH};
 
 #[repr(align(16))]
+#[derive(Clone, Copy)]
 pub struct BoardBits(__m128i);
 
 impl BoardManipulation for BoardBits {
@@ -30,6 +31,18 @@ impl BoardManipulation for BoardBits {
         unsafe { mem::transmute(u64x2::from_array([lo << shift, hi << shift])) }
     }
 
+    fn mask(&self, mask: Self) -> Self {
+        *self & mask
+    }
+
+    fn mask_12(&self) -> Self {
+        self.mask(unsafe { Self::board_mask_12() })
+    }
+
+    fn mask_13(&self) -> Self {
+        self.mask(unsafe { Self::board_mask_13() })
+    }
+
     fn get(&self, x: usize, y: usize) -> bool {
         debug_assert!(Self::within_bound(x, y));
 
@@ -37,9 +50,23 @@ impl BoardManipulation for BoardBits {
     }
 }
 
+impl std::ops::BitAnd for BoardBits {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        Self(unsafe { _mm_and_si128(self.0, rhs.0) })
+    }
+}
+
 impl BoardBits {
     const fn within_bound(x: usize, y: usize) -> bool {
         x < ENTIRE_WIDTH && y < ENTIRE_HEIGHT
+    }
+
+    const unsafe fn board_mask_full() -> Self {
+        mem::transmute(u16x8::from_array([
+            0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+        ]))
     }
 
     const unsafe fn board_mask_12() -> Self {
@@ -78,13 +105,19 @@ mod tests {
     }
 
     #[test]
-    fn board_mask() {
-        // TODO: replace with public (safe) fn
-        let mask_12 = unsafe { BoardBits::board_mask_12() };
-        let mask_13 = unsafe { BoardBits::board_mask_13() };
+    fn mask() {
+        let mask_full = unsafe { BoardBits::board_mask_full() };
+        let mask_12 = mask_full.mask_12();
+        let mask_13 = mask_full.mask_13();
 
         for x in 0..ENTIRE_WIDTH {
             for y in 0..ENTIRE_HEIGHT {
+                assert!(
+                    mask_full.get(x, y),
+                    "mask_full is incorrect at (x: {}, y: {})",
+                    x,
+                    y
+                );
                 assert_eq!(
                     mask_12.get(x, y),
                     1 <= x && x <= WIDTH && 1 <= y && y <= HEIGHT,

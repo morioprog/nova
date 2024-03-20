@@ -15,5 +15,9 @@ pub(crate) trait BoardManipulation {
     fn wall() -> Self;
     fn onebit(x: usize, y: usize) -> Self;
 
+    fn mask(&self, mask: Self) -> Self;
+    fn mask_12(&self) -> Self;
+    fn mask_13(&self) -> Self;
+
     fn get(&self, x: usize, y: usize) -> bool;
 }
