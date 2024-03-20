@@ -23,11 +23,11 @@ impl<C: Color> Default for PairQueue<C> {
 }
 
 impl<C: Color> PairQueue<C> {
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.len
     }
 
-    fn push(&mut self, pair: &Pair<C>) {
+    pub fn push(&mut self, pair: &Pair<C>) {
         debug_assert_ne!(
             self.len, TUMO_LOOP,
             "len has already reached the maximum ({})",
@@ -38,7 +38,7 @@ impl<C: Color> PairQueue<C> {
         self.len += 1;
     }
 
-    fn rotate(&mut self) {
+    pub fn rotate(&mut self) {
         debug_assert_eq!(
             self.len, TUMO_LOOP,
             "len should be {} but {} when rotating",
