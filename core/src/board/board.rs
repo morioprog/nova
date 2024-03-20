@@ -1,7 +1,11 @@
 use std::mem;
 
 use super::boardbits::{BoardBits, BoardOps};
-use crate::{board::WIDTH, chain::Chain, color::PuyoColor};
+use crate::{
+    board::WIDTH,
+    chain::{score, Chain},
+    color::PuyoColor,
+};
 
 pub struct Board(BoardBits, BoardBits, BoardBits);
 
@@ -39,15 +43,110 @@ impl Board {
         }
     }
 
-    pub fn simulate(&self) -> Chain {
-        todo!()
+    pub fn escape_14th_row(&mut self) -> Board {
+        let escaped = Board(
+            self.0.not_mask_13(),
+            self.1.not_mask_13(),
+            self.2.not_mask_13(),
+        );
 
-        /*
-           1. iterate each colors
-           2. if any puyo vanishes (mask 12), increment some params to calc score
-           3. don't forget to remove ojama
-           4. repeat till no change
-        */
+        self.0 = self.0.mask_13();
+        self.1 = self.1.mask_13();
+        self.2 = self.2.mask_13();
+
+        escaped
+    }
+
+    pub fn unescape_14th_row(&mut self, escaped: &Board) {
+        self.0 = self.0 | escaped.0;
+        self.1 = self.1 | escaped.1;
+        self.2 = self.2 | escaped.2;
+    }
+
+    /// Return (BoardBits of popping_puyos, num_popped_puyos, color_bonus, conn_bonus)
+    pub fn popping_puyos(&self) -> Option<(BoardBits, usize, usize, usize)> {
+        // 0b10x = RED (0b100) or GREEN (0b101)
+        let b12_01 = self.1.andnot(self.2).mask_12();
+        // 0b11x = BLUE (0b110) or YELLOW (0b111)
+        let b12_11 = (self.1 & self.2).mask_12();
+
+        let r = self.0.andnot(b12_01);
+        let g = self.0 & b12_01;
+        let b = self.0.andnot(b12_11);
+        let y = self.0 & b12_11;
+
+        let mut popped_puyos = BoardBits::zero();
+        let mut num_popped_puyos = 0;
+        let mut num_colors = 0;
+        let mut conn_bonus = 0;
+
+        for bb in &[r, g, b, y] {
+            let Some(mut pop) = bb.popping_bits() else {
+                continue;
+            };
+
+            popped_puyos = popped_puyos | pop;
+            let popcount = pop.popcount();
+            num_popped_puyos += popcount;
+            num_colors += 1;
+
+            // must be one connected component
+            if pop.popcount() < 8 {
+                conn_bonus += score::conn_bonus(popcount);
+            } else {
+                while !pop.is_zero() {
+                    let conn = pop.lsb().expand(pop);
+                    debug_assert!(conn.popcount() >= 4);
+                    conn_bonus += score::conn_bonus(conn.popcount());
+                    pop = pop ^ conn;
+                }
+            }
+        }
+
+        if num_popped_puyos == 0 {
+            return None;
+        }
+
+        let color_bonus = score::color_bonus(num_colors);
+
+        // remove ojama adjacent to `popped_puyos`
+        popped_puyos = popped_puyos
+            | popped_puyos
+                .expand_1(self.bits_with_color(PuyoColor::OJAMA))
+                .mask_12();
+
+        Some((popped_puyos, num_popped_puyos, color_bonus, conn_bonus))
+    }
+
+    pub fn simulate(&mut self) -> Chain {
+        let escaped = self.escape_14th_row();
+
+        let mut chain = 0;
+        let mut score = 0;
+        let mut frame = 0;
+
+        loop {
+            let Some((popped_puyos, num_popped_puyos, color_bonus, conn_bonus)) =
+                self.popping_puyos()
+            else {
+                break;
+            };
+
+            chain += 1;
+            let chain_bonus = score::chain_bonus(chain);
+            score += num_popped_puyos * (chain_bonus + color_bonus + conn_bonus).clamp(1, 999);
+            // TODO: calc frame
+
+            let dropping_puyos = popped_puyos.andnot(self.0 | self.1 | self.2);
+            // quick: max_drops = 0 (unrelated ones) or 15 (all clear)
+            let max_drops = dropping_puyos.lsb_u16x8().max_u16x8().trailing_zeros() - 1;
+
+            // TODO: apply gravity
+            // TODO: calc frame
+        }
+
+        self.unescape_14th_row(&escaped);
+        Chain::new(chain as u32, (score * 10) as u32, frame)
     }
 }
 
@@ -182,4 +281,9 @@ mod tests {
             ))
         );
     }
+
+    // TODO: add test for escape_14th_row
+    // TODO: add test for unescape_14th_row
+    // TODO: add test for popping_puyos
+    // TODO: add test for simulate
 }

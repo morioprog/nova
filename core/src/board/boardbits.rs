@@ -38,6 +38,10 @@ pub(super) trait BoardOps:
     fn shift_down(&self) -> Self;
     fn shift_left(&self) -> Self;
     fn shift_right(&self) -> Self;
+    fn popcount(&self) -> usize;
+    fn lsb(&self) -> Self;
+    fn lsb_u16x8(&self) -> Self;
+    fn max_u16x8(&self) -> u16;
 
     // getter / setter
     fn get(&self, x: usize, y: usize) -> u8;
@@ -74,6 +78,17 @@ impl BoardBits {
             self.set_0(x, y)
         } else {
             self.set_1(x, y)
+        }
+    }
+
+    pub fn expand(&self, mask: Self) -> Self {
+        let mut bb = *self;
+        loop {
+            let next_bb = bb.expand_1(mask);
+            if bb == next_bb {
+                return bb;
+            }
+            bb = next_bb;
         }
     }
 

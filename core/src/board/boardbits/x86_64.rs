@@ -74,6 +74,39 @@ impl BoardOps for BoardBits {
         Self(unsafe { _mm_slli_si128(self.0, 2) })
     }
 
+    fn popcount(&self) -> usize {
+        let lh: i64x2 = self.0.into();
+        unsafe { (_popcnt64(lh[0]) + _popcnt64(lh[1])) as usize }
+    }
+
+    fn lsb(&self) -> Self {
+        debug_assert!(!self.is_zero());
+
+        let lh: u64x2 = self.0.into();
+        if lh[0] > 0 {
+            return unsafe { mem::transmute(u64x2::from_array([1 << lh[0].trailing_zeros(), 0])) };
+        }
+
+        unsafe { mem::transmute(u64x2::from_array([0, 1 << lh[1].trailing_zeros()])) }
+    }
+
+    /// Derive LSB for all 16 bit integers.
+    fn lsb_u16x8(&self) -> Self {
+        // LSB = k & -k = k & (~k + 1)
+        let inv = *self ^ Self::full_mask();
+        let ones = unsafe { _mm_set1_epi16(1) };
+        let minus = Self(unsafe { _mm_add_epi16(inv.0, ones) });
+
+        *self & minus
+    }
+
+    fn max_u16x8(&self) -> u16 {
+        let inv = *self ^ Self::full_mask();
+        let min_inv = unsafe { _mm_minpos_epu16(inv.0) };
+
+        unsafe { !(_mm_cvtsi128_si32(min_inv) as u16) }
+    }
+
     fn get(&self, x: usize, y: usize) -> u8 {
         debug_assert!(Self::within_bound(x, y));
 
@@ -248,6 +281,93 @@ mod tests {
         assert_eq!(lhs | rhs, BoardBits::from("0111.."));
         assert_eq!(lhs ^ rhs, BoardBits::from("0110.."));
         assert_eq!(lhs.andnot(rhs), BoardBits::from("0100.."))
+    }
+
+    #[test]
+    fn popcount() {
+        assert_eq!(BoardBits::zero().popcount(), 0);
+        assert_eq!(BoardBits::onebit(2, 3).popcount(), 1);
+        assert_eq!(
+            BoardBits::from(concat!(
+                "11.1.1", // 2
+                ".11.1.", // 1
+            ))
+            .popcount(),
+            7,
+        );
+    }
+
+    #[test]
+    fn lsb() {
+        // low
+        assert_eq!(
+            BoardBits::from(concat!(
+                "11.1.1", // 2
+                ".11.1.", // 1
+            ))
+            .lsb(),
+            BoardBits::from(concat!(
+                "1.....", // 2
+                "......", // 1
+            ))
+        );
+        // high
+        assert_eq!(
+            BoardBits::from(concat!(
+                "...1.1", // 2
+                "....1.", // 1
+            ))
+            .lsb(),
+            BoardBits::from(concat!(
+                "...1..", // 2
+                "......", // 1
+            ))
+        );
+    }
+
+    #[test]
+    fn lsb_u16x8() {
+        let bb: BoardBits = unsafe {
+            mem::transmute(u16x8::from_array([
+                0x0000, 0x0001, 0x000A, 0x1234, 0xDEAD, 0xE800, 0xF050, 0xFFFF,
+            ]))
+        };
+        let expected: BoardBits = unsafe {
+            mem::transmute(u16x8::from_array([
+                0x0000, 0x0001, 0x0002, 0x0004, 0x0001, 0x0800, 0x0010, 0x0001,
+            ]))
+        };
+
+        assert_eq!(bb.lsb_u16x8(), expected);
+    }
+
+    #[test]
+    fn max_u16x8() {
+        let bb1: BoardBits = unsafe {
+            mem::transmute(u16x8::from_array([
+                0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+            ]))
+        };
+        let bb2: BoardBits = unsafe {
+            mem::transmute(u16x8::from_array([
+                0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+            ]))
+        };
+        let bb3: BoardBits = unsafe {
+            mem::transmute(u16x8::from_array([
+                0xABC7, 0xABC3, 0xABC4, 0xABC0, 0xABC6, 0xABC1, 0xABC2, 0xABC5,
+            ]))
+        };
+        let bb4: BoardBits = unsafe {
+            mem::transmute(u16x8::from_array([
+                0xABCD, 0x0000, 0x0001, 0xFFFF, 0xDEAD, 0xBEEF, 0x000F, 0xFFFE,
+            ]))
+        };
+
+        assert_eq!(bb1.max_u16x8(), 0x0000);
+        assert_eq!(bb2.max_u16x8(), 0xFFFF);
+        assert_eq!(bb3.max_u16x8(), 0xABC7);
+        assert_eq!(bb4.max_u16x8(), 0xFFFF);
     }
 
     #[test]
