@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Default, PartialEq, Debug)]
 pub struct Chain(u32, u32, u32);
 
 impl Chain {

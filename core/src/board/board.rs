@@ -7,6 +7,7 @@ use crate::{
     color::PuyoColor,
 };
 
+#[derive(Clone)]
 pub struct Board(BoardBits, BoardBits, BoardBits);
 
 impl Board {
@@ -118,6 +119,31 @@ impl Board {
         Some((popped_puyos, num_popped_puyos, color_bonus, conn_bonus))
     }
 
+    pub fn pop_and_apply_gravity(&mut self, popped_puyos: BoardBits) {
+        let (bef_lo, bef_hi) = BoardBits::before_pop_mask(popped_puyos);
+        let (aft_lo, aft_hi) = BoardBits::after_pop_mask(popped_puyos);
+
+        let mut b: [(u64, u64); 3] = [self.0.into(), self.1.into(), self.2.into()];
+        if aft_lo != 0xFFFFFFFFFFFFFFFF {
+            b[0].0 = BoardBits::pdep_u64(BoardBits::pext_u64(b[0].0, bef_lo), aft_lo);
+            b[1].0 = BoardBits::pdep_u64(BoardBits::pext_u64(b[1].0, bef_lo), aft_lo);
+            b[2].0 = BoardBits::pdep_u64(BoardBits::pext_u64(b[2].0, bef_lo), aft_lo);
+            if aft_hi != 0xFFFFFFFFFFFFFFFF {
+                b[0].1 = BoardBits::pdep_u64(BoardBits::pext_u64(b[0].1, bef_hi), aft_hi);
+                b[1].1 = BoardBits::pdep_u64(BoardBits::pext_u64(b[1].1, bef_hi), aft_hi);
+                b[2].1 = BoardBits::pdep_u64(BoardBits::pext_u64(b[2].1, bef_hi), aft_hi);
+            }
+        } else {
+            b[0].1 = BoardBits::pdep_u64(BoardBits::pext_u64(b[0].1, bef_hi), aft_hi);
+            b[1].1 = BoardBits::pdep_u64(BoardBits::pext_u64(b[1].1, bef_hi), aft_hi);
+            b[2].1 = BoardBits::pdep_u64(BoardBits::pext_u64(b[2].1, bef_hi), aft_hi);
+        }
+
+        self.0 = b[0].into();
+        self.1 = b[1].into();
+        self.2 = b[2].into();
+    }
+
     pub fn simulate(&mut self) -> Chain {
         let escaped = self.escape_14th_row();
 
@@ -141,7 +167,7 @@ impl Board {
             // quick: max_drops = 0 (unrelated ones) or 15 (all clear)
             let max_drops = dropping_puyos.lsb_u16x8().max_u16x8().trailing_zeros() - 1;
 
-            // TODO: apply gravity
+            self.pop_and_apply_gravity(popped_puyos)
             // TODO: calc frame
         }
 
@@ -282,8 +308,37 @@ mod tests {
         );
     }
 
+    #[test]
+    fn simulate() {
+        let mut board_1 = Board::from(concat!(
+            ".RBRB.", // 4
+            "RBRBR.", // 3
+            "RBRBR.", // 2
+            "RBRBRR"  // 1
+        ));
+        let mut board_2 = Board::from(concat!(
+            ".G.BRG", // 13
+            "GBRRYR", // 12
+            "RRYYBY", // 11
+            "RGYRBR", // 10
+            "YGYRBY", // 9
+            "YGBGYR", // 8
+            "GRBGYR", // 7
+            "BRBYBY", // 6
+            "RYYBYY", // 5
+            "BRBYBR", // 4
+            "BGBYRR", // 3
+            "YGBGBG", // 2
+            "RBGBGG"  // 1
+        ));
+
+        // TODO: calc frame
+        assert_eq!(board_1.simulate(), Chain::new(5, 4840, 0));
+        assert_eq!(board_2.simulate(), Chain::new(19, 175080, 0));
+    }
+
     // TODO: add test for escape_14th_row
     // TODO: add test for unescape_14th_row
     // TODO: add test for popping_puyos
-    // TODO: add test for simulate
+    // TODO: add test for pop_and_apply_gravity
 }

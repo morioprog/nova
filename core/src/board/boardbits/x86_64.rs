@@ -107,6 +107,30 @@ impl BoardOps for BoardBits {
         unsafe { !(_mm_cvtsi128_si32(min_inv) as u16) }
     }
 
+    fn pext_u64(a: u64, mask: u64) -> u64 {
+        unsafe { _pext_u64(a, mask) }
+    }
+
+    fn pdep_u64(a: u64, mask: u64) -> u64 {
+        unsafe { _pdep_u64(a, mask) }
+    }
+
+    fn before_pop_mask(popped: Self) -> (u64, u64) {
+        let lh: u64x2 = (popped ^ Self::full_mask()).0.into();
+        (lh[0], lh[1])
+    }
+
+    // TODO: AVX512 has _mm_srlv_epi16
+    fn after_pop_mask(popped: Self) -> (u64, u64) {
+        let lxhx: u64x4 = unsafe {
+            let shift = _mm256_cvtepu16_epi32(Self::popcount_u16x8(popped.0));
+            let half_ones = _mm256_cvtepu16_epi32(Self::full_mask().0);
+            let shifted = _mm256_srlv_epi32(half_ones, shift);
+            _mm256_packus_epi32(shifted, shifted).into()
+        };
+        (lxhx[0], lxhx[2])
+    }
+
     fn get(&self, x: usize, y: usize) -> u8 {
         debug_assert!(Self::within_bound(x, y));
 
@@ -182,9 +206,38 @@ where
     }
 }
 
+impl From<(u64, u64)> for BoardBits {
+    fn from(value: (u64, u64)) -> Self {
+        Self(u64x2::from_array([value.0, value.1]).into())
+    }
+}
+
+impl Into<(u64, u64)> for BoardBits {
+    fn into(self) -> (u64, u64) {
+        let lh: u64x2 = self.0.into();
+        (lh[0], lh[1])
+    }
+}
+
 impl BoardBits {
     const fn within_bound(x: usize, y: usize) -> bool {
         x < ENTIRE_WIDTH && y < ENTIRE_HEIGHT
+    }
+
+    // TODO: AVX512 has _mm_popcnt_epi16
+    unsafe fn popcount_u16x8(a: __m128i) -> __m128i {
+        let mask4 = _mm_set1_epi8(0x0F);
+        let lookup = _mm_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
+
+        let low = _mm_and_si128(mask4, a);
+        let high = _mm_and_si128(mask4, _mm_srli_epi16(a, 4));
+
+        let low_count = _mm_shuffle_epi8(lookup, low);
+        let high_count = _mm_shuffle_epi8(lookup, high);
+        let count8 = _mm_add_epi8(low_count, high_count);
+
+        let count16 = _mm_add_epi8(count8, _mm_slli_epi16(count8, 8));
+        _mm_srli_epi16(count16, 8)
     }
 }
 
@@ -405,4 +458,10 @@ mod tests {
         assert!(BoardBits::zero().is_zero());
         assert!(!BoardBits::onebit(2, 3).is_zero());
     }
+
+    // TODO: add test for pext_u64
+    // TODO: add test for pdep_u64
+    // TODO: add test for before_pop_mask
+    // TODO: add test for after_pop_mask
+    // TODO: add test for popcount_u16x8
 }

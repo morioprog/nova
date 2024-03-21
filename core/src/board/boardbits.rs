@@ -13,6 +13,8 @@ use crate::board::{ENTIRE_HEIGHT, ENTIRE_WIDTH};
 
 pub(super) trait BoardOps:
     From<&'static str>
+    + From<(u64, u64)>
+    + Into<(u64, u64)>
     + Sized
     + Clone
     + Copy
@@ -42,6 +44,12 @@ pub(super) trait BoardOps:
     fn lsb(&self) -> Self;
     fn lsb_u16x8(&self) -> Self;
     fn max_u16x8(&self) -> u16;
+
+    // pext / pdep
+    fn pext_u64(a: u64, mask: u64) -> u64;
+    fn pdep_u64(a: u64, mask: u64) -> u64;
+    fn before_pop_mask(popped: Self) -> (u64, u64);
+    fn after_pop_mask(popped: Self) -> (u64, u64);
 
     // getter / setter
     fn get(&self, x: usize, y: usize) -> u8;
