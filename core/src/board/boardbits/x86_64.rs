@@ -5,7 +5,7 @@ use crate::board::{ENTIRE_HEIGHT, ENTIRE_WIDTH, WIDTH};
 
 #[repr(align(16))]
 #[derive(Clone, Copy)]
-pub struct BoardBits(pub __m128i);
+pub struct BoardBits(__m128i);
 
 impl BoardOps for BoardBits {
     fn zero() -> Self {
