@@ -42,8 +42,12 @@ pub(super) trait BoardOps:
     fn shift_right(&self) -> Self;
     fn popcount(&self) -> usize;
     fn lsb(&self) -> Self;
-    fn lsb_u16x8(&self) -> Self;
     fn max_u16x8(&self) -> u16;
+    fn popcount_u16x8(&self) -> Self;
+    /// Set 1 for all 0s under topmost 1 in each column.
+    /// e.g. up 00010100 down
+    ///      => 00011111
+    fn set_below_top_one_u16x8(&self) -> Self;
 
     // pext / pdep
     fn pext_u64(a: u64, mask: u64) -> u64;

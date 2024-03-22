@@ -3,7 +3,7 @@ use std::mem;
 use super::boardbits::{BoardBits, BoardOps};
 use crate::{
     board::WIDTH,
-    chain::{score, Chain},
+    chain::{frame, score, Chain},
     color::PuyoColor,
 };
 
@@ -65,7 +65,7 @@ impl Board {
     }
 
     /// Return (BoardBits of popping_puyos, num_popped_puyos, color_bonus, conn_bonus)
-    pub fn popping_puyos(&self) -> Option<(BoardBits, usize, usize, usize)> {
+    pub fn popping_puyos(&self) -> Option<(BoardBits, u32, u32, u32)> {
         // 0b10x = RED (0b100) or GREEN (0b101)
         let b12_01 = self.1.andnot(self.2).mask_12();
         // 0b11x = BLUE (0b110) or YELLOW (0b111)
@@ -116,7 +116,12 @@ impl Board {
                 .expand_1(self.bits_with_color(PuyoColor::OJAMA))
                 .mask_12();
 
-        Some((popped_puyos, num_popped_puyos, color_bonus, conn_bonus))
+        Some((
+            popped_puyos,
+            num_popped_puyos as u32,
+            color_bonus,
+            conn_bonus,
+        ))
     }
 
     pub fn pop_and_apply_gravity(&mut self, popped_puyos: BoardBits) {
@@ -144,6 +149,15 @@ impl Board {
         self.2 = b[2].into();
     }
 
+    pub fn max_drops(&self, popped_puyos: BoardBits) -> u16 {
+        // it makes no sense to use this method for board with top wall.
+        debug_assert!(popped_puyos.not_mask_13().is_zero());
+
+        let dropping_puyos = popped_puyos.andnot(self.0 | self.1 | self.2);
+        let holes = dropping_puyos.set_below_top_one_u16x8() & popped_puyos;
+        holes.popcount_u16x8().max_u16x8() as u16
+    }
+
     pub fn simulate(&mut self) -> Chain {
         let escaped = self.escape_14th_row();
 
@@ -161,14 +175,9 @@ impl Board {
             chain += 1;
             let chain_bonus = score::chain_bonus(chain);
             score += num_popped_puyos * (chain_bonus + color_bonus + conn_bonus).clamp(1, 999);
-            // TODO: calc frame
+            frame += frame::chain_frames(self.max_drops(popped_puyos));
 
-            let dropping_puyos = popped_puyos.andnot(self.0 | self.1 | self.2);
-            // quick: max_drops = 0 (unrelated ones) or 15 (all clear)
-            let max_drops = dropping_puyos.lsb_u16x8().max_u16x8().trailing_zeros() - 1;
-
-            self.pop_and_apply_gravity(popped_puyos)
-            // TODO: calc frame
+            self.pop_and_apply_gravity(popped_puyos);
         }
 
         self.unescape_14th_row(&escaped);
@@ -310,35 +319,84 @@ mod tests {
 
     #[test]
     fn simulate() {
-        let mut board_1 = Board::from(concat!(
-            ".RBRB.", // 4
-            "RBRBR.", // 3
-            "RBRBR.", // 2
-            "RBRBRR"  // 1
-        ));
-        let mut board_2 = Board::from(concat!(
-            ".G.BRG", // 13
-            "GBRRYR", // 12
-            "RRYYBY", // 11
-            "RGYRBR", // 10
-            "YGYRBY", // 9
-            "YGBGYR", // 8
-            "GRBGYR", // 7
-            "BRBYBY", // 6
-            "RYYBYY", // 5
-            "BRBYBR", // 4
-            "BGBYRR", // 3
-            "YGBGBG", // 2
-            "RBGBGG"  // 1
-        ));
+        let board_and_chain = [
+            (
+                Board::from(concat!(
+                    "B.....", // 6
+                    "RY....", // 5
+                    "RY....", // 4
+                    "RBBG..", // 3
+                    "YBGG..", // 2
+                    "RYBG.."  // 1
+                )),
+                Chain::new(
+                    4,
+                    40 * 1 + 40 * 8 + 40 * 16 + 40 * 32,
+                    frame::chain_frames(1)
+                        + frame::chain_frames(2)
+                        + frame::chain_frames(1)
+                        + frame::chain_frames(4),
+                ),
+            ),
+            (
+                Board::from(concat!(
+                    "RY....", // 5
+                    "RY....", // 4
+                    "RBBG..", // 3
+                    "YBGG..", // 2
+                    "RYBG.."  // 1
+                )),
+                Chain::new(
+                    4,
+                    40 * 1 + 40 * 8 + 40 * 16 + 40 * 32,
+                    frame::chain_frames(1)
+                        + frame::chain_frames(2)
+                        + frame::chain_frames(1)
+                        + frame::chain_frames(0),
+                ),
+            ),
+            (
+                Board::from(concat!(
+                    "..BY..", // 4
+                    "..BR..", // 3
+                    "..BR..", // 2
+                    ".BRR.."  // 1
+                )),
+                Chain::new(
+                    2,
+                    40 * 1 + 40 * 8,
+                    frame::chain_frames(3) + frame::chain_frames(0),
+                ),
+            ),
+            (
+                Board::from(concat!(
+                    ".G.BRG", // 13
+                    "GBRRYR", // 12
+                    "RRYYBY", // 11
+                    "RGYRBR", // 10
+                    "YGYRBY", // 9
+                    "YGBGYR", // 8
+                    "GRBGYR", // 7
+                    "BRBYBY", // 6
+                    "RYYBYY", // 5
+                    "BRBYBR", // 4
+                    "BGBYRR", // 3
+                    "YGBGBG", // 2
+                    "RBGBGG"  // 1
+                )),
+                // Note: haven't checked if frame is correct or not
+                Chain::new(19, 175080, 1551),
+            ),
+        ];
 
-        // TODO: calc frame
-        assert_eq!(board_1.simulate(), Chain::new(5, 4840, 0));
-        assert_eq!(board_2.simulate(), Chain::new(19, 175080, 0));
+        for (mut board, chain) in board_and_chain {
+            assert_eq!(board.simulate(), chain);
+        }
     }
 
     // TODO: add test for escape_14th_row
     // TODO: add test for unescape_14th_row
     // TODO: add test for popping_puyos
     // TODO: add test for pop_and_apply_gravity
+    // TODO: add test for max_drops
 }

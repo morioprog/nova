@@ -6,7 +6,7 @@ extern crate test;
 use ghoti_core::board::Board;
 use test::Bencher;
 
-// 364 ns/iter (+/- 4)
+// 382 ns/iter (+/- 9)
 #[bench]
 fn simulate_19chain(b: &mut Bencher) {
     let board = Board::from(concat!(

@@ -90,21 +90,38 @@ impl BoardOps for BoardBits {
         unsafe { mem::transmute(u64x2::from_array([0, 1 << lh[1].trailing_zeros()])) }
     }
 
-    /// Derive LSB for all 16 bit integers.
-    fn lsb_u16x8(&self) -> Self {
-        // LSB = k & -k = k & (~k + 1)
-        let inv = *self ^ Self::full_mask();
-        let ones = unsafe { _mm_set1_epi16(1) };
-        let minus = Self(unsafe { _mm_add_epi16(inv.0, ones) });
-
-        *self & minus
-    }
-
     fn max_u16x8(&self) -> u16 {
         let inv = *self ^ Self::full_mask();
         let min_inv = unsafe { _mm_minpos_epu16(inv.0) };
 
         unsafe { !(_mm_cvtsi128_si32(min_inv) as u16) }
+    }
+
+    // TODO: AVX512 has _mm_popcnt_epi16
+    fn popcount_u16x8(&self) -> Self {
+        Self(unsafe {
+            let mask4 = _mm_set1_epi8(0x0F);
+            let lookup = _mm_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
+
+            let low = _mm_and_si128(mask4, self.0);
+            let high = _mm_and_si128(mask4, _mm_srli_epi16(self.0, 4));
+
+            let low_count = _mm_shuffle_epi8(lookup, low);
+            let high_count = _mm_shuffle_epi8(lookup, high);
+            let count8 = _mm_add_epi8(low_count, high_count);
+
+            let count16 = _mm_add_epi8(count8, _mm_slli_epi16(count8, 8));
+            _mm_srli_epi16(count16, 8)
+        })
+    }
+
+    fn set_below_top_one_u16x8(&self) -> Self {
+        let mut b = self.0;
+        b = unsafe { _mm_or_si128(b, _mm_srli_epi16(b, 1)) };
+        b = unsafe { _mm_or_si128(b, _mm_srli_epi16(b, 2)) };
+        b = unsafe { _mm_or_si128(b, _mm_srli_epi16(b, 4)) };
+        b = unsafe { _mm_or_si128(b, _mm_srli_epi16(b, 8)) };
+        Self(b)
     }
 
     fn pext_u64(a: u64, mask: u64) -> u64 {
@@ -123,7 +140,7 @@ impl BoardOps for BoardBits {
     // TODO: AVX512 has _mm_srlv_epi16
     fn after_pop_mask(popped: Self) -> (u64, u64) {
         let lxhx: u64x4 = unsafe {
-            let shift = _mm256_cvtepu16_epi32(Self::popcount_u16x8(popped.0));
+            let shift = _mm256_cvtepu16_epi32(popped.popcount_u16x8().0);
             let half_ones = _mm256_cvtepu16_epi32(Self::full_mask().0);
             let shifted = _mm256_srlv_epi32(half_ones, shift);
             _mm256_packus_epi32(shifted, shifted).into()
@@ -222,22 +239,6 @@ impl Into<(u64, u64)> for BoardBits {
 impl BoardBits {
     const fn within_bound(x: usize, y: usize) -> bool {
         x < ENTIRE_WIDTH && y < ENTIRE_HEIGHT
-    }
-
-    // TODO: AVX512 has _mm_popcnt_epi16
-    unsafe fn popcount_u16x8(a: __m128i) -> __m128i {
-        let mask4 = _mm_set1_epi8(0x0F);
-        let lookup = _mm_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
-
-        let low = _mm_and_si128(mask4, a);
-        let high = _mm_and_si128(mask4, _mm_srli_epi16(a, 4));
-
-        let low_count = _mm_shuffle_epi8(lookup, low);
-        let high_count = _mm_shuffle_epi8(lookup, high);
-        let count8 = _mm_add_epi8(low_count, high_count);
-
-        let count16 = _mm_add_epi8(count8, _mm_slli_epi16(count8, 8));
-        _mm_srli_epi16(count16, 8)
     }
 }
 
@@ -379,22 +380,6 @@ mod tests {
     }
 
     #[test]
-    fn lsb_u16x8() {
-        let bb: BoardBits = unsafe {
-            mem::transmute(u16x8::from_array([
-                0x0000, 0x0001, 0x000A, 0x1234, 0xDEAD, 0xE800, 0xF050, 0xFFFF,
-            ]))
-        };
-        let expected: BoardBits = unsafe {
-            mem::transmute(u16x8::from_array([
-                0x0000, 0x0001, 0x0002, 0x0004, 0x0001, 0x0800, 0x0010, 0x0001,
-            ]))
-        };
-
-        assert_eq!(bb.lsb_u16x8(), expected);
-    }
-
-    #[test]
     fn max_u16x8() {
         let bb1: BoardBits = unsafe {
             mem::transmute(u16x8::from_array([
@@ -464,4 +449,5 @@ mod tests {
     // TODO: add test for before_pop_mask
     // TODO: add test for after_pop_mask
     // TODO: add test for popcount_u16x8
+    // TODO: add test for set_below_top_one_u16x8
 }
