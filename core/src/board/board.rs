@@ -7,7 +7,7 @@ use crate::{
     color::PuyoColor,
 };
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Board(BoardBits, BoardBits, BoardBits);
 
 impl Board {
@@ -44,7 +44,7 @@ impl Board {
         }
     }
 
-    pub fn escape_14th_row(&mut self) -> Board {
+    pub fn escape_above_13th_row(&mut self) -> Board {
         let escaped = Board(
             self.0.not_mask_13(),
             self.1.not_mask_13(),
@@ -58,7 +58,7 @@ impl Board {
         escaped
     }
 
-    pub fn unescape_14th_row(&mut self, escaped: &Board) {
+    pub fn unescape_above_13th_row(&mut self, escaped: &Board) {
         self.0 = self.0 | escaped.0;
         self.1 = self.1 | escaped.1;
         self.2 = self.2 | escaped.2;
@@ -159,7 +159,7 @@ impl Board {
     }
 
     pub fn simulate(&mut self) -> Chain {
-        let escaped = self.escape_14th_row();
+        let escaped = self.escape_above_13th_row();
 
         let mut chain = 0;
         let mut score = 0;
@@ -180,7 +180,7 @@ impl Board {
             self.pop_and_apply_gravity(popped_puyos);
         }
 
-        self.unescape_14th_row(&escaped);
+        self.unescape_above_13th_row(&escaped);
         Chain::new(chain as u32, (score * 10) as u32, frame)
     }
 }
@@ -318,6 +318,185 @@ mod tests {
     }
 
     #[test]
+    fn escape_above_13th_row() {
+        let mut full_board = Board(
+            BoardBits::full_mask(),
+            BoardBits::full_mask(),
+            BoardBits::full_mask(),
+        );
+
+        let escaped = full_board.escape_above_13th_row();
+
+        assert!((full_board.0 & escaped.0).is_zero());
+        assert!((full_board.1 & escaped.1).is_zero());
+        assert!((full_board.2 & escaped.2).is_zero());
+        assert!(full_board.0.not_mask_13().is_zero());
+        assert!(full_board.1.not_mask_13().is_zero());
+        assert!(full_board.2.not_mask_13().is_zero());
+        assert!(escaped.0.mask_13().is_zero());
+        assert!(escaped.1.mask_13().is_zero());
+        assert!(escaped.2.mask_13().is_zero());
+    }
+
+    #[test]
+    fn unescape_above_13th_row() {
+        let mut full_board = Board(
+            BoardBits::full_mask(),
+            BoardBits::full_mask(),
+            BoardBits::full_mask(),
+        );
+        let escaped = full_board.escape_above_13th_row();
+
+        full_board.unescape_above_13th_row(&escaped);
+
+        assert_eq!(full_board.0, BoardBits::full_mask());
+        assert_eq!(full_board.1, BoardBits::full_mask());
+        assert_eq!(full_board.2, BoardBits::full_mask());
+    }
+
+    #[test]
+    fn popping_puyos() {
+        assert_eq!(
+            Board::from(concat!(
+                "B.....", // 6
+                "RY....", // 5
+                "RY....", // 4
+                "RBBG..", // 3
+                "YBGG..", // 2
+                "RYBG.."  // 1
+            ))
+            .popping_puyos(),
+            Some((
+                BoardBits::from(concat!(
+                    "...1..", // 3
+                    "..11..", // 2
+                    "...1..", // 1
+                )),
+                4,                     // num_popped_puyos
+                score::color_bonus(1), // color_bonus
+                score::conn_bonus(4),  // conn_bonus
+            ))
+        );
+
+        assert_eq!(
+            Board::from(concat!(
+                "..RGG.", // 4
+                ".BBYY.", // 3
+                "RRBBYY", // 2
+                "RRRGYY"  // 1
+            ))
+            .popping_puyos(),
+            Some((
+                BoardBits::from(concat!(
+                    ".1111.", // 3
+                    "111111", // 2
+                    "111.11", // 1
+                )),
+                5 + 4 + 6,             // num_popped_puyos
+                score::color_bonus(3), // color_bonus
+                score::conn_bonus(5) + score::conn_bonus(4) + score::conn_bonus(6), // conn_bonus
+            ))
+        );
+    }
+
+    #[test]
+    fn pop_and_apply_gravity() {
+        let testcases = [
+            (
+                Board::from(concat!(
+                    "B.....", // 6
+                    "RY....", // 5
+                    "RY....", // 4
+                    "RBBG..", // 3
+                    "YBGG..", // 2
+                    "RYBG.."  // 1
+                )),
+                BoardBits::from(concat!(
+                    "...1..", // 3
+                    "..11..", // 2
+                    "...1..", // 1
+                )),
+                Board::from(concat!(
+                    "B.....", // 6
+                    "RY....", // 5
+                    "RY....", // 4
+                    "RB....", // 3
+                    "YBB...", // 2
+                    "RYB..."  // 1
+                )),
+            ),
+            (
+                Board::from(concat!(
+                    "..RGG.", // 4
+                    ".BBYY.", // 3
+                    "RRBBYY", // 2
+                    "RRRGYY"  // 1
+                )),
+                BoardBits::from(concat!(
+                    ".1111.", // 3
+                    "111111", // 2
+                    "111.11", // 1
+                )),
+                Board::from(concat!(
+                    "...G..", // 2
+                    "..RGG."  // 1
+                )),
+            ),
+        ];
+
+        for (mut before, popped, mut after) in testcases {
+            before.escape_above_13th_row();
+            after.escape_above_13th_row();
+
+            before.pop_and_apply_gravity(popped);
+
+            assert_eq!(before, after)
+        }
+    }
+
+    #[test]
+    fn max_drops() {
+        let testcases = [
+            (
+                Board::from(concat!(
+                    ".G....", // 5
+                    ".RR...", // 4
+                    ".GR...", // 3
+                    ".RR...", // 2
+                    ".RR...", // 1
+                )),
+                BoardBits::from(concat!(
+                    ".11...", // 4
+                    "..1...", // 3
+                    ".11...", // 2
+                    ".11...", // 1
+                )),
+                3,
+            ),
+            (
+                Board::from(concat!(
+                    "..RGG.", // 4
+                    ".BBYY.", // 3
+                    "RRBBYY", // 2
+                    "RRRGYY"  // 1
+                )),
+                BoardBits::from(concat!(
+                    ".1111.", // 3
+                    "111111", // 2
+                    "111.11", // 1
+                )),
+                3,
+            ),
+            (Board::from("RRRR.G"), BoardBits::from("1111.."), 0),
+        ];
+
+        for (mut before, popped, max) in testcases {
+            before.escape_above_13th_row();
+            assert_eq!(before.max_drops(popped), max);
+        }
+    }
+
+    #[test]
     fn simulate() {
         let board_and_chain = [
             (
@@ -393,10 +572,4 @@ mod tests {
             assert_eq!(board.simulate(), chain);
         }
     }
-
-    // TODO: add test for escape_14th_row
-    // TODO: add test for unescape_14th_row
-    // TODO: add test for popping_puyos
-    // TODO: add test for pop_and_apply_gravity
-    // TODO: add test for max_drops
 }
