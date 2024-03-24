@@ -1,0 +1,40 @@
+use super::Placement;
+
+pub(super) const PLACEMENTS: &'static [Placement; 22] = &[
+    Placement::new(1, 0),
+    Placement::new(2, 0),
+    Placement::new(3, 0),
+    Placement::new(4, 0),
+    Placement::new(5, 0),
+    Placement::new(6, 0),
+    Placement::new(2, 3),
+    Placement::new(3, 3),
+    Placement::new(3, 1),
+    Placement::new(4, 1),
+    Placement::new(5, 1),
+    Placement::new(1, 2),
+    Placement::new(2, 2),
+    Placement::new(3, 2),
+    Placement::new(4, 2),
+    Placement::new(5, 2),
+    Placement::new(6, 2),
+    Placement::new(1, 1),
+    Placement::new(2, 1),
+    Placement::new(4, 3),
+    Placement::new(5, 3),
+    Placement::new(6, 3),
+];
+
+pub(super) const PLACEMENTS_ZORO: &'static [Placement; 11] = &[
+    Placement::new(1, 0),
+    Placement::new(2, 0),
+    Placement::new(3, 0),
+    Placement::new(4, 0),
+    Placement::new(5, 0),
+    Placement::new(6, 0),
+    Placement::new(2, 3),
+    Placement::new(3, 3),
+    Placement::new(3, 1),
+    Placement::new(4, 1),
+    Placement::new(5, 1),
+];
