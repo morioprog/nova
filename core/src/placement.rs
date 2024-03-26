@@ -2,6 +2,7 @@ use self::placement::{PLACEMENTS, PLACEMENTS_ZORO};
 use crate::board::WIDTH;
 
 pub mod frame;
+pub mod placeable;
 mod placement;
 
 #[derive(Default, PartialEq)]

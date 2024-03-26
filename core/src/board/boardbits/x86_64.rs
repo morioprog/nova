@@ -115,6 +115,10 @@ impl BoardOps for BoardBits {
         })
     }
 
+    fn popcount_u16x8_array(&self) -> [u16; 8] {
+        u16x8::from(self.popcount_u16x8().0).to_array()
+    }
+
     fn set_below_top_one_u16x8(&self) -> Self {
         let mut b = self.0;
         b = unsafe { _mm_or_si128(b, _mm_srli_epi16(b, 1)) };
@@ -210,11 +214,11 @@ where
 
         let mut bb = Self::zero();
 
-        for (_y, chunk) in value.as_bytes().chunks(WIDTH).rev().enumerate() {
-            for (_x, c) in chunk.iter().enumerate() {
+        for (y_, chunk) in value.as_bytes().chunks(WIDTH).rev().enumerate() {
+            for (x_, c) in chunk.iter().enumerate() {
                 if c == &b'1' {
                     // x and y are both one-based
-                    bb.set_1(_x + 1, _y + 1);
+                    bb.set_1(x_ + 1, y_ + 1);
                 }
             }
         }
@@ -461,10 +465,45 @@ mod tests {
             ),
         ];
 
-        for (bits, max) in testcases {
+        for (bits, pc) in testcases {
             let bb: BoardBits = unsafe { mem::transmute(u16x8::from_array(bits)) };
-            let expected: BoardBits = unsafe { mem::transmute(u16x8::from_array(max)) };
+            let expected: BoardBits = unsafe { mem::transmute(u16x8::from_array(pc)) };
             assert_eq!(bb.popcount_u16x8(), expected);
+        }
+    }
+
+    #[test]
+    fn popcount_u16x8_array() {
+        let testcases = [
+            (
+                [
+                    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+                ],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ),
+            (
+                [
+                    0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+                ],
+                [16, 16, 16, 16, 16, 16, 16, 16],
+            ),
+            (
+                [
+                    0xABC7, 0xABC3, 0xABC4, 0xABC0, 0xABC6, 0xABC1, 0xABC2, 0xABC5,
+                ],
+                [10, 9, 8, 7, 9, 8, 8, 9],
+            ),
+            (
+                [
+                    0xABCD, 0x0000, 0x0001, 0xFFFF, 0xDEAD, 0xBEEF, 0x000F, 0xFFFE,
+                ],
+                [10, 0, 1, 16, 11, 13, 4, 15],
+            ),
+        ];
+
+        for (bits, expected) in testcases {
+            let bb: BoardBits = unsafe { mem::transmute(u16x8::from_array(bits)) };
+            assert_eq!(bb.popcount_u16x8_array(), expected);
         }
     }
 

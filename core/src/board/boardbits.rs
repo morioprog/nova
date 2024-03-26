@@ -44,6 +44,7 @@ pub(super) trait BoardOps:
     fn lsb(&self) -> Self;
     fn max_u16x8(&self) -> u16;
     fn popcount_u16x8(&self) -> Self;
+    fn popcount_u16x8_array(&self) -> [u16; 8];
     /// Set 1 for all 0s under topmost 1 in each column.
     /// e.g. up 00010100 down
     ///      => 00011111

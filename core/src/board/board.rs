@@ -1,8 +1,8 @@
-use std::mem;
+use std::{convert::TryInto, mem};
 
 use super::boardbits::{BoardBits, BoardOps};
 use crate::{
-    board::WIDTH,
+    board::{ENTIRE_WIDTH, WIDTH},
     chain::{frame, score, Chain},
     color::PuyoColor,
 };
@@ -29,6 +29,18 @@ impl Board {
         self.0.set(x, y, cb & 0b001);
         self.1.set(x, y, cb & 0b010);
         self.2.set(x, y, cb & 0b100);
+    }
+
+    pub fn height_array(&self) -> [usize; ENTIRE_WIDTH] {
+        (self.0 | self.1 | self.2)
+            .mask_13()
+            .popcount_u16x8_array()
+            // convert to [usize; _] for convenience
+            .iter()
+            .map(|&x| x as usize)
+            .collect::<Vec<usize>>()
+            .try_into()
+            .unwrap()
     }
 
     pub fn bits_with_color(&self, c: PuyoColor) -> BoardBits {
@@ -191,10 +203,10 @@ impl From<&'static str> for Board {
 
         let mut board = Self::new();
 
-        for (_y, chunk) in value.as_bytes().chunks(WIDTH).rev().enumerate() {
-            for (_x, c) in chunk.iter().enumerate() {
+        for (y_, chunk) in value.as_bytes().chunks(WIDTH).rev().enumerate() {
+            for (x_, c) in chunk.iter().enumerate() {
                 // x and y are both one-based
-                board.set(_x + 1, _y + 1, PuyoColor::from(*c));
+                board.set(x_ + 1, y_ + 1, PuyoColor::from(*c));
             }
         }
 
@@ -205,10 +217,7 @@ impl From<&'static str> for Board {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        board::{ENTIRE_HEIGHT, ENTIRE_WIDTH},
-        color::PuyoColor::*,
-    };
+    use crate::{board::ENTIRE_HEIGHT, color::PuyoColor::*};
 
     #[test]
     fn new() {
@@ -262,6 +271,20 @@ mod tests {
 
         board.set(3, 4, YELLOW);
         assert_eq!(board.get(3, 4), YELLOW);
+    }
+
+    #[test]
+    fn height_array() {
+        let board = Board::new();
+        assert_eq!(board.height_array()[1..=6], [0, 0, 0, 0, 0, 0]);
+
+        let board = Board::from(concat!(
+            "O..O..", // 4
+            "OO.O..", // 4
+            "OO.O.O", // 4
+            "OO.OOO", // 4
+        ));
+        assert_eq!(board.height_array()[1..=6], [4, 3, 0, 4, 1, 2]);
     }
 
     #[test]
