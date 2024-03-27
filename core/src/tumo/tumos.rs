@@ -6,6 +6,7 @@ use crate::color::{Color, PuyoColor, RealColor};
 pub type Tumos = PairQueue<PuyoColor>;
 pub type RealTumos = PairQueue<RealColor>;
 
+#[derive(Clone)]
 pub struct PairQueue<C: Color> {
     len: usize,
     head: usize,
