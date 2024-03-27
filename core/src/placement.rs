@@ -5,7 +5,7 @@ pub mod frame;
 pub mod placeable;
 mod placement;
 
-#[derive(Default, PartialEq)]
+#[derive(Clone, Copy, Default, PartialEq)]
 pub struct Placement(usize, usize);
 
 impl Placement {

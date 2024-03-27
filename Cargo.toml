@@ -1,5 +1,6 @@
 [workspace]
-members = ["core"]
+members = ["core", "bot"]
+resolver = "2"
 
 [profile.release]
 lto = true

@@ -1,4 +1,4 @@
-use std::{convert::TryInto, mem};
+use std::mem;
 
 use super::boardbits::{BoardBits, BoardOps};
 use crate::{
@@ -207,6 +207,21 @@ impl From<&'static str> for Board {
             for (x_, c) in chunk.iter().enumerate() {
                 // x and y are both one-based
                 board.set(x_ + 1, y_ + 1, PuyoColor::from(*c));
+            }
+        }
+
+        board
+    }
+}
+
+/// For tests.
+impl From<[usize; WIDTH]> for Board {
+    fn from(heights: [usize; WIDTH]) -> Self {
+        let mut board = Board::new();
+        for (x_, h) in heights.iter().enumerate() {
+            let x = x_ + 1;
+            for y in 1..=*h {
+                board.set(x, y, PuyoColor::OJAMA)
             }
         }
 

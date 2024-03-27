@@ -3,7 +3,7 @@ use crate::color::{Color, PuyoColor, RealColor};
 pub type Tumo = Pair<PuyoColor>;
 pub type RealTumo = Pair<RealColor>;
 
-#[derive(Clone, PartialEq, Debug, Default)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
 pub struct Pair<C: Color> {
     axis: C,
     child: C,

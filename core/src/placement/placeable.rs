@@ -2,6 +2,16 @@ use super::Placement;
 use crate::board::{Board, HEIGHT, WIDTH};
 
 impl Board {
+    pub fn valid_placements(&self, is_zoro: bool) -> Vec<&Placement> {
+        let iter = if is_zoro {
+            Placement::placements_zoro().iter()
+        } else {
+            Placement::placements_non_zoro().iter()
+        };
+
+        iter.filter(|pl| self.is_placeable(pl)).collect()
+    }
+
     pub fn is_placeable(&self, placement: &Placement) -> bool {
         self.place_frames(placement).is_some()
     }
@@ -91,7 +101,6 @@ impl Board {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color::PuyoColor::OJAMA;
 
     #[test]
     fn is_placeable_empty_board() {
@@ -252,20 +261,6 @@ mod tests {
                 placement.axis_x(),
                 placement.rot()
             );
-        }
-    }
-
-    impl From<[usize; WIDTH]> for Board {
-        fn from(heights: [usize; WIDTH]) -> Self {
-            let mut board = Board::new();
-            for (x_, h) in heights.iter().enumerate() {
-                let x = x_ + 1;
-                for y in 1..=*h {
-                    board.set(x, y, OJAMA)
-                }
-            }
-
-            board
         }
     }
 }

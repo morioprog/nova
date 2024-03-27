@@ -24,6 +24,17 @@ impl<C: Color> Default for PairQueue<C> {
 }
 
 impl<C: Color> PairQueue<C> {
+    pub fn new(pairs: &Vec<Pair<C>>) -> Self {
+        debug_assert!(pairs.len() <= TUMO_LOOP);
+
+        let mut tumos = Self::default();
+        tumos.len = pairs.len();
+        for (i, pair) in pairs.iter().enumerate() {
+            tumos.pairs[i] = *pair;
+        }
+        tumos
+    }
+
     pub fn len(&self) -> usize {
         self.len
     }
@@ -80,6 +91,16 @@ mod tests {
             RealTumos::default().pairs[0].type_id(),
             RealTumo::default().type_id()
         );
+    }
+
+    #[test]
+    fn new() {
+        let pairs = vec![Tumo::new_zoro(RED); 10];
+
+        let tumos = Tumos::new(&pairs);
+
+        assert_eq!(tumos.len(), pairs.len());
+        assert_eq!(tumos[0], pairs[0]);
     }
 
     #[test]
