@@ -35,6 +35,14 @@ impl<C: Color> Pair<C> {
     }
 }
 
+impl Pair<PuyoColor> {
+    pub fn new_random() -> Self {
+        let axis = PuyoColor::random_normal_color();
+        let child = PuyoColor::random_normal_color();
+        Self { axis, child }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -66,5 +74,12 @@ mod tests {
         assert_eq!(Tumo::new(RED, BLUE).is_valid(), true);
         assert_eq!(Tumo::new(BLUE, WALL).is_valid(), false);
         assert_eq!(Tumo::new(WALL, EMPTY).is_valid(), false);
+    }
+
+    #[test]
+    fn new_random() {
+        for _ in 0..100 {
+            assert!(Tumo::new_random().is_valid());
+        }
     }
 }

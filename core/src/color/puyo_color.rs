@@ -1,3 +1,7 @@
+use std::mem;
+
+use rand::Rng;
+
 use super::Color;
 
 /// [Color] impl for a simulation purpose.
@@ -35,6 +39,12 @@ impl Color for PuyoColor {
 
     fn is_normal_color(&self) -> bool {
         (*self as u8) & 0b100 != 0
+    }
+}
+
+impl PuyoColor {
+    pub fn random_normal_color() -> Self {
+        unsafe { mem::transmute(rand::thread_rng().gen_range(4u8..8u8)) }
     }
 }
 
@@ -76,5 +86,12 @@ mod tests {
         assert_eq!(PuyoColor::GREEN.is_normal_color(), true);
         assert_eq!(PuyoColor::BLUE.is_normal_color(), true);
         assert_eq!(PuyoColor::YELLOW.is_normal_color(), true);
+    }
+
+    #[test]
+    fn random_normal_color() {
+        for _ in 0..100 {
+            assert!(PuyoColor::random_normal_color().is_normal_color());
+        }
     }
 }

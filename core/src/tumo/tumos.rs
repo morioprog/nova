@@ -28,9 +28,8 @@ impl<C: Color> PairQueue<C> {
         debug_assert!(pairs.len() <= TUMO_LOOP);
 
         let mut tumos = Self::default();
-        tumos.len = pairs.len();
-        for (i, pair) in pairs.iter().enumerate() {
-            tumos.pairs[i] = *pair;
+        for pair in pairs.iter() {
+            tumos.push(pair);
         }
         tumos
     }
@@ -59,6 +58,16 @@ impl<C: Color> PairQueue<C> {
 
         // this works since `TUMO_LOOP` is a power of two
         self.head = (self.head + 1) & (TUMO_LOOP - 1);
+    }
+}
+
+impl PairQueue<PuyoColor> {
+    pub fn new_random() -> Self {
+        let mut tumos = Self::default();
+        for _ in 0..TUMO_LOOP {
+            tumos.push(&Pair::<PuyoColor>::new_random());
+        }
+        tumos
     }
 }
 
@@ -163,5 +172,15 @@ mod tests {
 
         // should panic here
         tumos.rotate();
+    }
+
+    #[test]
+    fn new_random() {
+        for _ in 0..100 {
+            let tumos = Tumos::new_random();
+            for i in 0..tumos.len() {
+                assert!(tumos[i].is_valid());
+            }
+        }
     }
 }
