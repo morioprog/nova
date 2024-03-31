@@ -15,7 +15,7 @@ impl Bot for RandomBot {
         "RandomBot"
     }
 
-    fn think_1p(&self, player_state: PlayerState) -> Decision {
+    fn think_1p(&self, player_state: &PlayerState) -> Decision {
         Decision {
             placements: vec![Self::random_valid_placement(
                 &player_state.board,
@@ -25,7 +25,7 @@ impl Bot for RandomBot {
         }
     }
 
-    fn think_2p(&self, player_state_1p: PlayerState, _player_state_2p: PlayerState) -> Decision {
+    fn think_2p(&self, player_state_1p: &PlayerState, _player_state_2p: &PlayerState) -> Decision {
         self.think_1p(player_state_1p)
     }
 }
@@ -68,7 +68,7 @@ mod tests {
 
         for board in &boards {
             for tumos in &tumos_pattern {
-                let decision = bot.think_1p(PlayerState {
+                let decision = bot.think_1p(&PlayerState {
                     board: board.clone(),
                     tumos: tumos.clone(),
                     ..PlayerState::zero()
