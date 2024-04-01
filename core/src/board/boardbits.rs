@@ -1,16 +1,16 @@
+use super::{ENTIRE_HEIGHT, ENTIRE_WIDTH, WIDTH};
+
 cfg_if::cfg_if! {
-    if #[cfg(all(target_arch = "x86_64"))] {
+    if #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))] {
         mod x86_64;
         pub(crate) use self::x86_64::BoardBits;
     } else {
-        todo!()
-        // mod base;
-        // pub(crate) use self::base::BoardBits;
+        mod base;
+        pub(crate) use self::base::BoardBits;
     }
 }
 
-use crate::board::{ENTIRE_HEIGHT, ENTIRE_WIDTH};
-
+// TODO: require (From|Into)<[u16; 8]> to remove most of common tests?
 pub(super) trait BoardOps:
     From<&'static str>
     + From<(u64, u64)>
@@ -158,10 +158,32 @@ impl std::fmt::Debug for BoardBits {
     }
 }
 
+impl From<&'static str> for BoardBits
+where
+    Self: BoardOps,
+{
+    fn from(value: &'static str) -> Self {
+        debug_assert!(value.len() % WIDTH == 0);
+
+        let mut bb = Self::zero();
+
+        for (y_, chunk) in value.as_bytes().chunks(WIDTH).rev().enumerate() {
+            for (x_, c) in chunk.iter().enumerate() {
+                if c == &b'1' {
+                    // x and y are both one-based
+                    bb.set_1(x_ + 1, y_ + 1);
+                }
+            }
+        }
+
+        bb
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::board::{HEIGHT, WIDTH};
+    use crate::board::HEIGHT;
 
     #[test]
     fn mask() {
@@ -270,5 +292,26 @@ mod tests {
         ))
         .popping_bits()
         .is_none());
+    }
+
+    #[test]
+    fn from_str() {
+        let bb = BoardBits::from(concat!(
+            "11..1.", // 2
+            ".1...1", // 1
+        ));
+
+        assert_eq!(bb.get(1, 1), 0);
+        assert_eq!(bb.get(2, 1), 1);
+        assert_eq!(bb.get(3, 1), 0);
+        assert_eq!(bb.get(4, 1), 0);
+        assert_eq!(bb.get(5, 1), 0);
+        assert_eq!(bb.get(6, 1), 1);
+        assert_eq!(bb.get(1, 2), 1);
+        assert_eq!(bb.get(2, 2), 1);
+        assert_eq!(bb.get(3, 2), 0);
+        assert_eq!(bb.get(4, 2), 0);
+        assert_eq!(bb.get(5, 2), 1);
+        assert_eq!(bb.get(6, 2), 0);
     }
 }

@@ -1,163 +1,146 @@
-use std::{arch::x86_64::*, mem, simd::*};
-
 use super::BoardOps;
 use crate::board::{ENTIRE_HEIGHT, ENTIRE_WIDTH};
 
 #[repr(align(16))]
 #[derive(Clone, Copy)]
-pub struct BoardBits(__m128i);
+pub struct BoardBits(u128);
 
 impl BoardOps for BoardBits {
     fn zero() -> Self {
-        unsafe { Self(_mm_setzero_si128()) }
+        Self(0u128)
     }
 
     fn wall() -> Self {
-        unsafe {
-            mem::transmute(u16x8::from_array([
-                0xFFFF, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0xFFFF,
-            ]))
-        }
+        Self(0xFFFF_8001_8001_8001_8001_8001_8001_FFFF)
     }
 
     fn board_mask_12() -> Self {
-        unsafe {
-            mem::transmute(u16x8::from_array([
-                0x0000, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x0000,
-            ]))
-        }
+        Self(0x0000_1FFE_1FFE_1FFE_1FFE_1FFE_1FFE_0000)
     }
 
     fn board_mask_13() -> Self {
-        unsafe {
-            mem::transmute(u16x8::from_array([
-                0x0000, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x0000,
-            ]))
-        }
+        Self(0x0000_3FFE_3FFE_3FFE_3FFE_3FFE_3FFE_0000)
     }
 
     fn full_mask() -> Self {
-        unsafe {
-            mem::transmute(u16x8::from_array([
-                0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
-            ]))
-        }
+        Self(0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF)
     }
 
     fn onebit(x: usize, y: usize) -> Self {
         debug_assert!(Self::within_bound(x, y));
 
         let shift = ((x << 4) | y) & 0x3F; // x << 4: choose column by multiplying 16
-        let hi = (x as u64) >> 2; // 1 if x >= 4 else 0
+        let hi = (x as u128) >> 2; // 1 if x >= 4 else 0
         let lo = hi ^ 1;
 
-        // TODO: From<(u64, u64)>
-        unsafe { mem::transmute(u64x2::from_array([lo << shift, hi << shift])) }
+        Self(hi << (shift + 64) | lo << shift)
     }
 
     fn andnot(&self, rhs: Self) -> Self {
-        Self(unsafe { _mm_andnot_si128(self.0, rhs.0) })
+        Self(!self.0 & rhs.0)
     }
 
     fn shift_up(&self) -> Self {
-        Self(unsafe { _mm_slli_epi16(self.0, 1) })
+        Self((self.0 << 1) & 0xFFFE_FFFE_FFFE_FFFE_FFFE_FFFE_FFFE_FFFE)
     }
 
     fn shift_down(&self) -> Self {
-        Self(unsafe { _mm_srli_epi16(self.0, 1) })
+        Self((self.0 >> 1) & 0x7FFF_7FFF_7FFF_7FFF_7FFF_7FFF_7FFF_7FFF)
     }
 
     fn shift_left(&self) -> Self {
-        Self(unsafe { _mm_srli_si128(self.0, 2) })
+        Self(self.0 >> ENTIRE_HEIGHT)
     }
 
     fn shift_right(&self) -> Self {
-        Self(unsafe { _mm_slli_si128(self.0, 2) })
+        Self(self.0 << ENTIRE_HEIGHT)
     }
 
     fn popcount(&self) -> usize {
-        let lh: i64x2 = self.0.into();
-        unsafe { (_popcnt64(lh[0]) + _popcnt64(lh[1])) as usize }
+        self.0.count_ones() as usize
     }
 
     fn lsb(&self) -> Self {
-        debug_assert!(!self.is_zero());
-
-        let lh: u64x2 = self.0.into();
-        if lh[0] > 0 {
-            return unsafe { mem::transmute(u64x2::from_array([1 << lh[0].trailing_zeros(), 0])) };
-        }
-
-        unsafe { mem::transmute(u64x2::from_array([0, 1 << lh[1].trailing_zeros()])) }
+        Self(1u128 << self.0.trailing_zeros())
     }
 
     fn max_u16x8(&self) -> u16 {
-        let inv = *self ^ Self::full_mask();
-        let min_inv = unsafe { _mm_minpos_epu16(inv.0) };
-
-        unsafe { !(_mm_cvtsi128_si32(min_inv) as u16) }
+        let arr: [u16; 8] = (*self).into();
+        *arr.iter().max().unwrap()
     }
 
-    // TODO: AVX512 has _mm_popcnt_epi16
     fn popcount_u16x8(&self) -> Self {
-        Self(unsafe {
-            let mask4 = _mm_set1_epi8(0x0F);
-            let lookup = _mm_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
-
-            let low = _mm_and_si128(mask4, self.0);
-            let high = _mm_and_si128(mask4, _mm_srli_epi16(self.0, 4));
-
-            let low_count = _mm_shuffle_epi8(lookup, low);
-            let high_count = _mm_shuffle_epi8(lookup, high);
-            let count8 = _mm_add_epi8(low_count, high_count);
-
-            let count16 = _mm_add_epi8(count8, _mm_slli_epi16(count8, 8));
-            _mm_srli_epi16(count16, 8)
-        })
+        self.popcount_u16x8_array().into()
     }
 
     fn popcount_u16x8_array(&self) -> [u16; 8] {
-        u16x8::from(self.popcount_u16x8().0).to_array()
+        let arr: [u16; 8] = (*self).into();
+        arr.iter()
+            .map(|i| i.count_ones() as u16)
+            .collect::<Vec<u16>>()
+            .try_into()
+            .unwrap()
     }
 
     fn set_below_top_one_u16x8(&self) -> Self {
         let mut b = self.0;
-        b = unsafe { _mm_or_si128(b, _mm_srli_epi16(b, 1)) };
-        b = unsafe { _mm_or_si128(b, _mm_srli_epi16(b, 2)) };
-        b = unsafe { _mm_or_si128(b, _mm_srli_epi16(b, 4)) };
-        b = unsafe { _mm_or_si128(b, _mm_srli_epi16(b, 8)) };
+        b = b | ((b >> 1) & 0x7FFF_7FFF_7FFF_7FFF_7FFF_7FFF_7FFF_7FFF);
+        b = b | ((b >> 2) & 0x3FFF_3FFF_3FFF_3FFF_3FFF_3FFF_3FFF_3FFF);
+        b = b | ((b >> 4) & 0x0FFF_0FFF_0FFF_0FFF_0FFF_0FFF_0FFF_0FFF);
+        b = b | ((b >> 8) & 0x00FF_00FF_00FF_00FF_00FF_00FF_00FF_00FF);
         Self(b)
     }
 
-    fn pext_u64(a: u64, mask: u64) -> u64 {
-        unsafe { _pext_u64(a, mask) }
+    fn pext_u64(a: u64, mut mask: u64) -> u64 {
+        let mut b = a & mask;
+        let mut mk = !mask << 1;
+        for i in 0..6 {
+            let mp = Self::suffix_parity_u64(mk);
+            let mv = mp & mask;
+            mask = (mask ^ mv) | (mv >> (1 << i));
+            let t = b & mv;
+            b = (b ^ t) | (t >> (1 << i));
+            mk &= !mp;
+        }
+        b
     }
 
-    fn pdep_u64(a: u64, mask: u64) -> u64 {
-        unsafe { _pdep_u64(a, mask) }
+    fn pdep_u64(mut a: u64, mask: u64) -> u64 {
+        let mut m = mask;
+        let mut mk = !m << 1;
+        let mut mvs = [0; 6];
+
+        for i in 0..6 {
+            let mp = Self::suffix_parity_u64(mk);
+            let mv = mp & m;
+            m = (m ^ mv) | (mv >> (1 << i));
+            mk &= !mp;
+            mvs[i] = mv;
+        }
+
+        for i in (0..6).rev() {
+            let mv = mvs[i];
+            let t = a << (1 << i);
+            a = (a & !mv) | (t & mv);
+        }
+
+        a & mask
     }
 
     fn before_pop_mask(popped: Self) -> (u64, u64) {
-        // TODO: Into<(u64, u64)>
-        let lh: u64x2 = (popped ^ Self::full_mask()).0.into();
-        (lh[0], lh[1])
+        (popped ^ Self::full_mask()).into()
     }
 
     fn after_pop_mask(popped: Self) -> (u64, u64) {
-        let lxhx: u64x4 = unsafe {
-            // TODO: AVX512 has _mm_srlv_epi16
-            let shift = _mm256_cvtepu16_epi32(popped.popcount_u16x8().0);
-            let half_ones = _mm256_cvtepu16_epi32(Self::full_mask().0);
-            let shifted = _mm256_srlv_epi32(half_ones, shift);
-            _mm256_packus_epi32(shifted, shifted).into()
-        };
-        (lxhx[0], lxhx[2])
+        let ppc = popped.popcount_u16x8_array();
+        let b: BoardBits = ppc.map(|i| 0xFFFF >> i).into();
+        b.into()
     }
 
     fn get(&self, x: usize, y: usize) -> u8 {
         debug_assert!(Self::within_bound(x, y));
 
-        unsafe { _mm_test_all_zeros(Self::onebit(x, y).0, self.0) as u8 ^ 1 }
+        (Self::onebit(x, y).0 & self.0 != 0) as u8
     }
 
     fn set_0(&mut self, x: usize, y: usize) {
@@ -173,13 +156,13 @@ impl BoardOps for BoardBits {
     }
 
     fn is_zero(&self) -> bool {
-        unsafe { _mm_test_all_zeros(self.0, self.0) != 0 }
+        self.0 == 0
     }
 }
 
 impl PartialEq<Self> for BoardBits {
     fn eq(&self, other: &Self) -> bool {
-        (*self ^ *other).is_zero()
+        self.0 ^ other.0 == 0
     }
 }
 
@@ -187,7 +170,7 @@ impl std::ops::BitAnd for BoardBits {
     type Output = Self;
 
     fn bitand(self, rhs: Self) -> Self::Output {
-        Self(unsafe { _mm_and_si128(self.0, rhs.0) })
+        Self(self.0 & rhs.0)
     }
 }
 
@@ -195,7 +178,7 @@ impl std::ops::BitOr for BoardBits {
     type Output = Self;
 
     fn bitor(self, rhs: Self) -> Self::Output {
-        Self(unsafe { _mm_or_si128(self.0, rhs.0) })
+        Self(self.0 | rhs.0)
     }
 }
 
@@ -203,26 +186,59 @@ impl std::ops::BitXor for BoardBits {
     type Output = Self;
 
     fn bitxor(self, rhs: Self) -> Self::Output {
-        Self(unsafe { _mm_xor_si128(self.0, rhs.0) })
+        Self(self.0 ^ rhs.0)
     }
 }
 
 impl From<(u64, u64)> for BoardBits {
     fn from(value: (u64, u64)) -> Self {
-        Self(u64x2::from_array([value.0, value.1]).into())
+        let lo = value.0 as u128;
+        let hi = value.1 as u128;
+        Self(hi << 64 | lo)
+    }
+}
+
+impl From<[u16; 8]> for BoardBits {
+    fn from(value: [u16; 8]) -> Self {
+        let mut b = 0;
+        for i in value.iter().rev() {
+            b <<= 16;
+            b |= *i as u128;
+        }
+        Self(b)
     }
 }
 
 impl From<BoardBits> for (u64, u64) {
     fn from(value: BoardBits) -> Self {
-        let lh: u64x2 = value.0.into();
-        (lh[0], lh[1])
+        let lo = (value.0 & 0xFFFF_FFFF_FFFF_FFFF) as u64;
+        let hi = (value.0 >> 64) as u64;
+        (lo, hi)
+    }
+}
+
+impl From<BoardBits> for [u16; 8] {
+    fn from(value: BoardBits) -> Self {
+        let mut b = value.0;
+        let mut arr = [0; 8];
+        for i in 0..8 {
+            arr[i] = (b & 0xFFFF) as u16;
+            b >>= 16;
+        }
+        arr
     }
 }
 
 impl BoardBits {
     const fn within_bound(x: usize, y: usize) -> bool {
         x < ENTIRE_WIDTH && y < ENTIRE_HEIGHT
+    }
+
+    fn suffix_parity_u64(mut x: u64) -> u64 {
+        for i in 0..6 {
+            x ^= x << (1 << i);
+        }
+        x
     }
 }
 
@@ -252,7 +268,7 @@ mod tests {
                     x == 0 || x == ENTIRE_WIDTH - 1 || y == 0 || y == ENTIRE_HEIGHT - 1,
                     "wall is incorrect at (x: {}, y: {})",
                     x,
-                    y
+                    y,
                 );
                 assert_eq!(
                     mask_12.get(x, y) == 1,
@@ -390,7 +406,7 @@ mod tests {
         ];
 
         for (bits, max) in testcases {
-            let bb: BoardBits = unsafe { mem::transmute(u16x8::from_array(bits)) };
+            let bb: BoardBits = bits.into();
             assert_eq!(bb.max_u16x8(), max);
         }
     }
@@ -425,8 +441,8 @@ mod tests {
         ];
 
         for (bits, pc) in testcases {
-            let bb: BoardBits = unsafe { mem::transmute(u16x8::from_array(bits)) };
-            let expected: BoardBits = unsafe { mem::transmute(u16x8::from_array(pc)) };
+            let bb: BoardBits = bits.into();
+            let expected: BoardBits = pc.into();
             assert_eq!(bb.popcount_u16x8(), expected);
         }
     }
@@ -461,7 +477,7 @@ mod tests {
         ];
 
         for (bits, expected) in testcases {
-            let bb: BoardBits = unsafe { mem::transmute(u16x8::from_array(bits)) };
+            let bb: BoardBits = bits.into();
             assert_eq!(bb.popcount_u16x8_array(), expected);
         }
     }
@@ -496,8 +512,8 @@ mod tests {
         ];
 
         for (bits, spl) in testcases {
-            let bb: BoardBits = unsafe { mem::transmute(u16x8::from_array(bits)) };
-            let expected: BoardBits = unsafe { mem::transmute(u16x8::from_array(spl)) };
+            let bb: BoardBits = bits.into();
+            let expected: BoardBits = spl.into();
             assert_eq!(bb.set_below_top_one_u16x8(), expected);
         }
     }
@@ -554,24 +570,23 @@ mod tests {
                     ".1.1..", // 1
                 )) ^ BoardBits::wall()
             ),
-            unsafe {
-                mem::transmute(BoardBits::from(concat!(
-                    "111111", // 14
-                    "111111", // 13
-                    "111111", // 12
-                    "111111", // 11
-                    "111111", // 10
-                    "111111", // 9
-                    "111111", // 8
-                    "111111", // 7
-                    "111111", // 6
-                    "111111", // 5
-                    "111111", // 4
-                    ".11...", // 3
-                    "..1.11", // 2
-                    "1.1.11", // 1
-                )))
-            }
+            BoardBits::from(concat!(
+                "111111", // 14
+                "111111", // 13
+                "111111", // 12
+                "111111", // 11
+                "111111", // 10
+                "111111", // 9
+                "111111", // 8
+                "111111", // 7
+                "111111", // 6
+                "111111", // 5
+                "111111", // 4
+                ".11...", // 3
+                "..1.11", // 2
+                "1.1.11", // 1
+            ))
+            .into()
         );
     }
 
@@ -583,28 +598,25 @@ mod tests {
                 "11.1..", // 2
                 ".1.1..", // 1
             ))),
-            unsafe {
-                mem::transmute(
-                    (BoardBits::from(concat!(
-                        "..1...", // 14
-                        "..1.11", // 13
-                        "111.11", // 12
-                        "111111", // 11
-                        "111111", // 10
-                        "111111", // 9
-                        "111111", // 8
-                        "111111", // 7
-                        "111111", // 6
-                        "111111", // 5
-                        "111111", // 4
-                        "111111", // 3
-                        "111111", // 2
-                        "111111", // 1
-                    )) ^ BoardBits::wall())
-                    .shift_up()
-                        | BoardBits::wall().shift_up().shift_down(), // bottom-most row
-                )
-            },
+            ((BoardBits::from(concat!(
+                "..1...", // 14
+                "..1.11", // 13
+                "111.11", // 12
+                "111111", // 11
+                "111111", // 10
+                "111111", // 9
+                "111111", // 8
+                "111111", // 7
+                "111111", // 6
+                "111111", // 5
+                "111111", // 4
+                "111111", // 3
+                "111111", // 2
+                "111111", // 1
+            )) ^ BoardBits::wall())
+            .shift_up()
+                | BoardBits::wall().shift_up().shift_down()) // bottom-most row
+            .into(),
         );
     }
 
