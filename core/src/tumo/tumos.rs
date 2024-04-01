@@ -27,7 +27,7 @@ impl<C: Color> Default for PairQueue<C> {
 }
 
 impl<C: Color> PairQueue<C> {
-    pub fn new(pairs: &Vec<Pair<C>>) -> Self {
+    pub fn new(pairs: &[Pair<C>]) -> Self {
         debug_assert!(pairs.len() <= TUMO_LOOP);
 
         let mut tumos = Self::default();
