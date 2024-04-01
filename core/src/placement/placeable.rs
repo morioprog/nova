@@ -1,7 +1,27 @@
 use super::Placement;
-use crate::board::{Board, HEIGHT, WIDTH};
+use crate::{
+    board::{Board, HEIGHT, WIDTH},
+    tumo::Tumo,
+};
 
 impl Board {
+    pub fn place_tumo(&mut self, tumo: &Tumo, placement: &Placement) -> Option<u32> {
+        let Some(frame) = self.place_frames(placement) else {
+            return None;
+        };
+
+        let (axis, child) = if placement.rot() == 2 {
+            (tumo.child(), tumo.axis())
+        } else {
+            (tumo.axis(), tumo.child())
+        };
+
+        self.place_puyo(placement.axis_x(), axis);
+        self.place_puyo(placement.child_x(), child);
+
+        Some(frame)
+    }
+
     pub fn valid_placements(&self, is_zoro: bool) -> Vec<&Placement> {
         let iter = if is_zoro {
             Placement::placements_zoro().iter()
@@ -16,7 +36,7 @@ impl Board {
         self.place_frames(placement).is_some()
     }
 
-    // TODO: frame estimation & test
+    // TODO: frame estimation (chigiri, vertical/horizontal move) & test
     pub fn place_frames(&self, placement: &Placement) -> Option<u32> {
         debug_assert!(placement.is_valid());
 
@@ -101,6 +121,9 @@ impl Board {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // TODO: write test for place_tumo
+    // TODO: write test for place_frames
 
     #[test]
     fn is_placeable_empty_board() {
