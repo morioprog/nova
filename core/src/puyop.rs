@@ -1,4 +1,9 @@
-use crate::{board::Board, color::PuyoColor, placement::Placement, tumo::Tumos};
+use crate::{
+    board::Board,
+    color::PuyoColor,
+    placement::Placement,
+    tumo::{Tumos, TUMO_LOOP},
+};
 
 const URL_PREFIX: &'static str = "http://www.puyop.com/s/";
 const CHARS: &'static str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[]";
@@ -74,10 +79,15 @@ pub fn construct_board_url(board: &Board) -> String {
 }
 
 pub fn construct_sim1p_url(board: &Board, tumos: &Tumos, placements: &[Placement]) -> String {
+    // TODO: feels really weird
+    let mut tumos = tumos.clone();
+    tumos.set_visible(TUMO_LOOP);
+    tumos.reset_head();
+
     format!(
         "{}_{}",
         construct_board_url(board),
-        encode_decisions(tumos, placements)
+        encode_decisions(&tumos, placements)
     )
 }
 

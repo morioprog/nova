@@ -70,6 +70,10 @@ impl<C: Color> PairQueue<C> {
     pub fn set_visible(&mut self, visible: usize) {
         self.visible = visible;
     }
+
+    pub fn reset_head(&mut self) {
+        self.head = 0;
+    }
 }
 
 impl PairQueue<PuyoColor> {

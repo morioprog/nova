@@ -1,7 +1,7 @@
 use core::placement::Placement;
 use std::time::Duration;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Decision {
     pub placements: Vec<Placement>,
     pub logging: Option<String>,
