@@ -1,6 +1,9 @@
 use std::mem;
 
-use super::boardbits::{BoardBits, BoardOps};
+use super::{
+    boardbits::{BoardBits, BoardOps},
+    HEIGHT,
+};
 use crate::{
     board::{ENTIRE_WIDTH, WIDTH},
     chain::{frame, score, Chain},
@@ -194,6 +197,17 @@ impl Board {
 
         self.unescape_above_13th_row(&escaped);
         Chain::new(chain as u32, (score * 10) as u32, frame)
+    }
+
+    pub fn place_puyo(&mut self, x: usize, c: PuyoColor) {
+        let y_ = self.height_array()[x];
+        debug_assert!(y_ + 1 <= 14);
+
+        self.set(x, y_ + 1, c)
+    }
+
+    pub fn is_dead(&self) -> bool {
+        self.get(3, HEIGHT) != PuyoColor::EMPTY
     }
 }
 
@@ -609,5 +623,61 @@ mod tests {
         for (mut board, chain) in board_and_chain {
             assert_eq!(board.simulate(), chain);
         }
+    }
+
+    #[test]
+    fn place_puyo() {
+        let mut board = Board::new();
+        board.place_puyo(1, RED);
+        assert_eq!(board, Board::from("R....."));
+
+        let mut board = Board::new();
+        board.place_puyo(3, BLUE);
+        assert_eq!(board, Board::from("..B..."));
+
+        let mut board_bef = Board::from(concat!(
+            "B.R..R", // 2
+            "YYG.RR", // 1
+        ));
+        let board_aft = Board::from(concat!(
+            "BOR..R", // 2
+            "YYG.RR", // 1
+        ));
+        board_bef.place_puyo(2, OJAMA);
+        assert_eq!(board_bef, board_aft);
+    }
+
+    #[test]
+    fn is_dead() {
+        assert!(!Board::new().is_dead());
+        assert!(!Board::from(concat!(
+            "..O...", // 11
+            "..O...", // 10
+            "..O...", // 9
+            "..O...", // 8
+            "..O...", // 7
+            "..O...", // 6
+            "..O...", // 5
+            "..O...", // 4
+            "..O...", // 3
+            "..O...", // 2
+            "..O...", // 1
+        ))
+        .is_dead());
+        assert!(Board::from(concat!(
+            "..O...", // 12
+            "..O...", // 11
+            "..O...", // 10
+            "..O...", // 9
+            "..O...", // 8
+            "..O...", // 7
+            "..O...", // 6
+            "..O...", // 5
+            "..O...", // 4
+            "..O...", // 3
+            "..O...", // 2
+            "..O...", // 1
+        ))
+        .is_dead());
     }
 }
