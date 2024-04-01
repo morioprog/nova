@@ -1,6 +1,6 @@
 use super::Placement;
 
-pub(super) const PLACEMENTS: &'static [Placement; 22] = &[
+pub(super) const PLACEMENTS: &[Placement; 22] = &[
     Placement::new(1, 0),
     Placement::new(2, 0),
     Placement::new(3, 0),
@@ -25,7 +25,7 @@ pub(super) const PLACEMENTS: &'static [Placement; 22] = &[
     Placement::new(6, 3),
 ];
 
-pub(super) const PLACEMENTS_ZORO: &'static [Placement; 11] = &[
+pub(super) const PLACEMENTS_ZORO: &[Placement; 11] = &[
     Placement::new(1, 0),
     Placement::new(2, 0),
     Placement::new(3, 0),

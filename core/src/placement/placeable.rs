@@ -6,9 +6,7 @@ use crate::{
 
 impl Board {
     pub fn place_tumo(&mut self, tumo: &Tumo, placement: &Placement) -> Option<u32> {
-        let Some(frame) = self.place_frames(placement) else {
-            return None;
-        };
+        let frame = self.place_frames(placement)?;
 
         let (axis, child) = if placement.rot() == 2 {
             (tumo.child(), tumo.axis())
@@ -114,7 +112,7 @@ impl Board {
             }
         }
 
-        return None;
+        None
     }
 }
 

@@ -1,8 +1,9 @@
 use super::Color;
 
 /// [Color] impl for an actual game.
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
 pub enum RealColor {
+    #[default]
     EMPTY = 0,
     WALL = 1,
     OJAMA = 2,
@@ -13,23 +14,17 @@ pub enum RealColor {
     PURPLE = 7,
 }
 
-impl Default for RealColor {
-    fn default() -> Self {
-        RealColor::EMPTY
-    }
-}
-
 impl Color for RealColor {
     fn to_char(&self) -> char {
-        match self {
-            &RealColor::EMPTY => ' ',
-            &RealColor::WALL => '#',
-            &RealColor::OJAMA => 'O',
-            &RealColor::RED => 'R',
-            &RealColor::GREEN => 'G',
-            &RealColor::BLUE => 'B',
-            &RealColor::YELLOW => 'Y',
-            &RealColor::PURPLE => 'P',
+        match *self {
+            RealColor::EMPTY => ' ',
+            RealColor::WALL => '#',
+            RealColor::OJAMA => 'O',
+            RealColor::RED => 'R',
+            RealColor::GREEN => 'G',
+            RealColor::BLUE => 'B',
+            RealColor::YELLOW => 'Y',
+            RealColor::PURPLE => 'P',
         }
     }
 

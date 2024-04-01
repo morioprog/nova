@@ -143,7 +143,7 @@ impl std::fmt::Display for BoardBits {
         let mut s = String::new();
         for y in (0..ENTIRE_HEIGHT).rev() {
             for x in 0..ENTIRE_WIDTH {
-                s.push(('0' as u8 + self.get(x, y)) as char);
+                s.push((b'0' + self.get(x, y)) as char);
             }
             s.push('\n')
         }

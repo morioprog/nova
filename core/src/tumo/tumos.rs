@@ -48,7 +48,7 @@ impl<C: Color> PairQueue<C> {
             TUMO_LOOP
         );
 
-        self.pairs[self.len] = pair.clone();
+        self.pairs[self.len] = *pair;
         self.len += 1;
     }
 

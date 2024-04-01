@@ -174,7 +174,7 @@ impl Board {
 
         let dropping_puyos = popped_puyos.andnot(self.0 | self.1 | self.2);
         let holes = dropping_puyos.set_below_top_one_u16x8() & popped_puyos;
-        holes.popcount_u16x8().max_u16x8() as u16
+        holes.popcount_u16x8().max_u16x8()
     }
 
     pub fn simulate(&mut self) -> Chain {
@@ -200,7 +200,7 @@ impl Board {
         }
 
         self.unescape_above_13th_row(&escaped);
-        Chain::new(chain as u32, (score * 10) as u32, frame)
+        Chain::new(chain as u32, score * 10, frame)
     }
 
     pub fn place_puyo(&mut self, x: usize, c: PuyoColor) {
@@ -212,6 +212,12 @@ impl Board {
 
     pub fn is_dead(&self) -> bool {
         self.get(3, HEIGHT) != PuyoColor::EMPTY
+    }
+}
+
+impl Default for Board {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

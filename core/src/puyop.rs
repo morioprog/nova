@@ -5,8 +5,8 @@ use crate::{
     tumo::{Tumos, TUMO_LOOP},
 };
 
-const URL_PREFIX: &'static str = "http://www.puyop.com/s/";
-const CHARS: &'static str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[]";
+const URL_PREFIX: &str = "http://www.puyop.com/s/";
+const CHARS: &str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[]";
 
 fn encode_board(board: &Board) -> String {
     fn color_to_int(color: PuyoColor) -> usize {

@@ -1,8 +1,8 @@
-const CHAIN_BONUS: &'static [u32; 20] = &[
+const CHAIN_BONUS: &[u32; 20] = &[
     0, 0, 8, 16, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512,
 ];
-const COLOR_BONUS: &'static [u32; 6] = &[0, 0, 3, 6, 12, 24];
-const CONN_BONUS: &'static [u32; 12] = &[0, 0, 0, 0, 0, 2, 3, 4, 5, 6, 7, 10];
+const COLOR_BONUS: &[u32; 6] = &[0, 0, 3, 6, 12, 24];
+const CONN_BONUS: &[u32; 12] = &[0, 0, 0, 0, 0, 2, 3, 4, 5, 6, 7, 10];
 
 pub const fn chain_bonus(nth_chain: usize) -> u32 {
     debug_assert!(nth_chain <= 19);

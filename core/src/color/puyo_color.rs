@@ -5,8 +5,9 @@ use rand::Rng;
 use super::Color;
 
 /// [Color] impl for a simulation purpose.
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
 pub enum PuyoColor {
+    #[default]
     EMPTY = 0,
     WALL = 1,
     OJAMA = 2,
@@ -17,23 +18,17 @@ pub enum PuyoColor {
     YELLOW = 7,
 }
 
-impl Default for PuyoColor {
-    fn default() -> Self {
-        PuyoColor::EMPTY
-    }
-}
-
 impl Color for PuyoColor {
     fn to_char(&self) -> char {
-        match self {
-            &PuyoColor::EMPTY => ' ',
-            &PuyoColor::WALL => '#',
-            &PuyoColor::OJAMA => 'O',
-            &PuyoColor::IRON => '&',
-            &PuyoColor::RED => 'R',
-            &PuyoColor::GREEN => 'G',
-            &PuyoColor::BLUE => 'B',
-            &PuyoColor::YELLOW => 'Y',
+        match *self {
+            PuyoColor::EMPTY => ' ',
+            PuyoColor::WALL => '#',
+            PuyoColor::OJAMA => 'O',
+            PuyoColor::IRON => '&',
+            PuyoColor::RED => 'R',
+            PuyoColor::GREEN => 'G',
+            PuyoColor::BLUE => 'B',
+            PuyoColor::YELLOW => 'Y',
         }
     }
 

@@ -233,9 +233,9 @@ impl From<(u64, u64)> for BoardBits {
     }
 }
 
-impl Into<(u64, u64)> for BoardBits {
-    fn into(self) -> (u64, u64) {
-        let lh: u64x2 = self.0.into();
+impl From<BoardBits> for (u64, u64) {
+    fn from(value: BoardBits) -> Self {
+        let lh: u64x2 = value.0.into();
         (lh[0], lh[1])
     }
 }
