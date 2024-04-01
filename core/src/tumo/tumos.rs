@@ -11,6 +11,8 @@ pub struct PairQueue<C: Color> {
     len: usize,
     head: usize,
     pairs: [Pair<C>; TUMO_LOOP],
+    /// For simulator, prevent bot from cheating
+    visible: usize,
 }
 
 impl<C: Color> Default for PairQueue<C> {
@@ -19,6 +21,7 @@ impl<C: Color> Default for PairQueue<C> {
             len: 0,
             head: 0,
             pairs: from_fn(|_| Default::default()),
+            visible: TUMO_LOOP,
         }
     }
 }
@@ -59,6 +62,14 @@ impl<C: Color> PairQueue<C> {
         // this works since `TUMO_LOOP` is a power of two
         self.head = (self.head + 1) & (TUMO_LOOP - 1);
     }
+
+    pub fn get_visible(&self) -> usize {
+        self.visible
+    }
+
+    pub fn set_visible(&mut self, visible: usize) {
+        self.visible = visible;
+    }
 }
 
 impl PairQueue<PuyoColor> {
@@ -75,6 +86,9 @@ impl<C: Color> Index<usize> for PairQueue<C> {
     type Output = Pair<C>;
 
     fn index(&self, index: usize) -> &Self::Output {
+        debug_assert!(index < self.len);
+        debug_assert!(index < self.visible);
+
         // this works since `TUMO_LOOP` is a power of two
         &self.pairs[(self.head + index) & (TUMO_LOOP - 1)]
     }
@@ -182,5 +196,15 @@ mod tests {
                 assert!(tumos[i].is_valid());
             }
         }
+    }
+
+    #[test]
+    #[should_panic]
+    fn access_invisibles() {
+        let mut tumos = Tumos::new_random();
+        tumos.set_visible(10);
+
+        // should panic here
+        tumos[10];
     }
 }
