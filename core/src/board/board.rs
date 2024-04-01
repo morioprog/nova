@@ -34,6 +34,10 @@ impl Board {
         self.2.set(x, y, cb & 0b100);
     }
 
+    pub fn is_empty(&self, x: usize, y: usize) -> bool {
+        self.get(x, y) == PuyoColor::EMPTY
+    }
+
     pub fn height_array(&self) -> [usize; ENTIRE_WIDTH] {
         (self.0 | self.1 | self.2)
             .mask_13()
@@ -300,6 +304,15 @@ mod tests {
 
         board.set(3, 4, YELLOW);
         assert_eq!(board.get(3, 4), YELLOW);
+    }
+
+    #[test]
+    fn is_empty() {
+        let mut board = Board::new();
+        assert!(board.is_empty(1, 1));
+
+        board.set(1, 1, RED);
+        assert!(!board.is_empty(1, 1));
     }
 
     #[test]
