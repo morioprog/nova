@@ -39,10 +39,10 @@ impl Board {
     }
 
     pub fn height_array(&self) -> [usize; ENTIRE_WIDTH] {
-        (self.0 | self.1 | self.2)
-            .mask_13()
-            .popcount_u16x8_array()
-            // convert to [usize; _] for convenience
+        let heights: [u16; 8] = (self.0 | self.1 | self.2).mask_13().popcount_u16x8().into();
+
+        // convert to [usize; _] for convenience
+        heights
             .iter()
             .map(|&x| x as usize)
             .collect::<Vec<usize>>()
