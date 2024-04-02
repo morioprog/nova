@@ -4,7 +4,6 @@ use std::time::Instant;
 use crate::{decision::DecisionWithoutElapsed, Decision};
 
 pub trait Bot {
-    fn new() -> Self;
     fn name(&self) -> &'static str;
     fn think_internal_1p(&self, player_state: &PlayerState) -> DecisionWithoutElapsed;
     fn think_internal_2p(

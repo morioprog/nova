@@ -4,7 +4,7 @@ use bot::Bot;
 
 use crate::simulate_result::simulate_1p_result::Simulate1PResult;
 
-pub fn simulate_1p(bot: impl Bot) -> Simulate1PResult {
+pub fn simulate_1p(bot: Box<dyn Bot>) -> Simulate1PResult {
     // TODO: pass visible as parameter
     let visible = 3;
 

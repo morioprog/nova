@@ -7,10 +7,6 @@ use crate::{decision::DecisionWithoutElapsed, Bot};
 pub struct RandomBot {}
 
 impl Bot for RandomBot {
-    fn new() -> Self {
-        Self {}
-    }
-
     fn name(&self) -> &'static str {
         "RandomBot"
     }
@@ -54,7 +50,7 @@ mod tests {
 
     #[test]
     fn think_returns_valid_placement() {
-        let bot = RandomBot::new();
+        let bot = RandomBot {};
         let boards: [Board; 8] = [
             [0, 0, 0, 0, 0, 0].into(),
             [11, 11, 11, 11, 11, 11].into(),

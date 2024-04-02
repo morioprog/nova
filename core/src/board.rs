@@ -1,7 +1,10 @@
 mod board;
 mod boardbits;
 
-pub use self::board::Board;
+pub use self::{
+    board::Board,
+    boardbits::{BoardBits, BoardOps},
+};
 
 /// Board width.
 pub const WIDTH: usize = 6;

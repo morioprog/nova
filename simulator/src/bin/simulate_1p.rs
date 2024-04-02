@@ -2,7 +2,7 @@ use bot::bots::get_bot;
 use ghoti_simulator::simulate_1p;
 
 fn main() {
-    let bot_name = "RandomBot";
+    let bot_name = "DfsBot";
     let bot = get_bot(bot_name);
 
     let simulate_result = simulate_1p(bot);

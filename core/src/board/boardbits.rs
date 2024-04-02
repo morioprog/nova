@@ -3,14 +3,14 @@ use super::{ENTIRE_HEIGHT, ENTIRE_WIDTH, WIDTH};
 cfg_if::cfg_if! {
     if #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))] {
         mod x86_64;
-        pub(crate) use self::x86_64::BoardBits;
+        pub use self::x86_64::BoardBits;
     } else {
         mod base;
-        pub(crate) use self::base::BoardBits;
+        pub use self::base::BoardBits;
     }
 }
 
-pub(super) trait BoardOps:
+pub trait BoardOps:
     From<&'static str>
     + From<(u64, u64)>
     + Into<(u64, u64)>
