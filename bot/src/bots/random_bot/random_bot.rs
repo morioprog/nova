@@ -2,7 +2,7 @@ use core::{board::Board, placement::Placement, player_state::PlayerState};
 
 use rand::seq::SliceRandom;
 
-use crate::{Bot, Decision};
+use crate::{decision::DecisionWithoutElapsed, Bot};
 
 pub struct RandomBot {}
 
@@ -15,18 +15,22 @@ impl Bot for RandomBot {
         "RandomBot"
     }
 
-    fn think_1p(&self, player_state: &PlayerState) -> Decision {
-        Decision {
+    fn think_internal_1p(&self, player_state: &PlayerState) -> DecisionWithoutElapsed {
+        DecisionWithoutElapsed {
             placements: vec![Self::random_valid_placement(
                 &player_state.board,
                 player_state.tumos[0].is_zoro(),
             )],
-            ..Decision::default()
+            ..DecisionWithoutElapsed::default()
         }
     }
 
-    fn think_2p(&self, player_state_1p: &PlayerState, _player_state_2p: &PlayerState) -> Decision {
-        self.think_1p(player_state_1p)
+    fn think_internal_2p(
+        &self,
+        player_state_1p: &PlayerState,
+        _player_state_2p: &PlayerState,
+    ) -> DecisionWithoutElapsed {
+        self.think_internal_1p(player_state_1p)
     }
 }
 
@@ -68,7 +72,7 @@ mod tests {
 
         for board in &boards {
             for tumos in &tumos_pattern {
-                let decision = bot.think_1p(&PlayerState {
+                let decision = bot.think_internal_1p(&PlayerState {
                     board: board.clone(),
                     tumos: tumos.clone(),
                     ..PlayerState::zero()
