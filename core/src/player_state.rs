@@ -1,5 +1,6 @@
 use crate::{board::Board, tumo::Tumos};
 
+#[derive(Clone)]
 pub struct PlayerState {
     pub board: Board,
     pub tumos: Tumos,
@@ -42,6 +43,13 @@ impl PlayerState {
             ojama_fixed,
             ojama_incoming,
             current_chain,
+        }
+    }
+
+    pub fn limit_visible_tumos(&self, visible: usize) -> Self {
+        Self {
+            tumos: self.tumos.slice_visible_tumos(visible),
+            ..(*self).clone()
         }
     }
 }

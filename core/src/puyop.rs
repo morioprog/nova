@@ -1,9 +1,4 @@
-use crate::{
-    board::Board,
-    color::PuyoColor,
-    placement::Placement,
-    tumo::{Tumos, TUMO_LOOP},
-};
+use crate::{board::Board, color::PuyoColor, placement::Placement, tumo::Tumos};
 
 const URL_PREFIX: &str = "http://www.puyop.com/s/";
 const CHARS: &str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ[]";
@@ -60,8 +55,8 @@ fn encode_decisions(tumos: &Tumos, placements: &[Placement]) -> String {
     let mut encoded = String::new();
 
     for (i, placement) in placements.iter().enumerate() {
-        let puyo_a = color_to_int(tumos[i].axis());
-        let puyo_c = color_to_int(tumos[i].child());
+        let puyo_a = color_to_int(tumos.get_raw(i).axis());
+        let puyo_c = color_to_int(tumos.get_raw(i).child());
         let pair = puyo_a * 5 + puyo_c;
         let plcm = placement_to_int(placement);
         let data = plcm << 7 | pair;
@@ -79,15 +74,10 @@ pub fn construct_board_url(board: &Board) -> String {
 }
 
 pub fn construct_sim1p_url(board: &Board, tumos: &Tumos, placements: &[Placement]) -> String {
-    // TODO: feels really weird
-    let mut tumos = tumos.clone();
-    tumos.set_visible(TUMO_LOOP);
-    tumos.reset_head();
-
     format!(
         "{}_{}",
         construct_board_url(board),
-        encode_decisions(&tumos, placements)
+        encode_decisions(tumos, placements)
     )
 }
 

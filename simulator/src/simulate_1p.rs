@@ -7,18 +7,13 @@ use crate::simulate_result::simulate_1p_result::Simulate1PResult;
 pub fn simulate_1p(bot: impl Bot) -> Simulate1PResult {
     // TODO: pass visible as parameter
     let visible = 3;
-    let mut player_state = {
-        let mut tumos = Tumos::new_random();
-        tumos.set_visible(visible); // till next2
-        PlayerState::initial_state(tumos)
-    };
 
-    let mut score = 0;
+    let mut player_state = PlayerState::initial_state(Tumos::new_random());
     let mut decisions = vec![];
 
     // TODO: pass 50 as parameter
     for _ in 0..50 {
-        let decision = bot.think_1p(&player_state);
+        let decision = bot.think_1p(&player_state.limit_visible_tumos(visible));
 
         let Some(placement) = decision.placements.first() else {
             panic!("Bot returned empty placement!")
@@ -32,7 +27,7 @@ pub fn simulate_1p(bot: impl Bot) -> Simulate1PResult {
         // TODO: consider drop bonus?
 
         let chain = player_state.board.simulate();
-        score += chain.score();
+        player_state.score += chain.score();
         // TODO: pass 80000 as parameter
         if chain.score() >= 80000 {
             break;
@@ -46,7 +41,7 @@ pub fn simulate_1p(bot: impl Bot) -> Simulate1PResult {
     }
 
     Simulate1PResult {
-        score,
+        score: player_state.score,
         visible,
         decisions,
         tumos: player_state.tumos,
