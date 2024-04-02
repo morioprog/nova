@@ -6,7 +6,8 @@ extern crate test;
 use ghoti_core::board::Board;
 use test::Bencher;
 
-// 357 ns/iter (+/- 14)
+// AVX2   : 357 ns/iter (+/- 14)
+// AVX512 : 316 ns/iter (+/- 8)
 #[bench]
 fn simulate_19chain(b: &mut Bencher) {
     let board = Board::from(concat!(

@@ -50,7 +50,12 @@ impl BoardOps for BoardBits {
         unsafe { !(_mm_cvtsi128_si32(min_inv) as u16) }
     }
 
-    // TODO: AVX512 has _mm_popcnt_epi16
+    #[cfg(any(target_feature = "avx512bitalg", target_feature = "avx512vl"))]
+    fn popcount_u16x8(&self) -> Self {
+        Self(unsafe { _mm_popcnt_epi16(self.0) })
+    }
+
+    #[cfg(not(any(target_feature = "avx512bitalg", target_feature = "avx512vl")))]
     fn popcount_u16x8(&self) -> Self {
         Self(unsafe {
             let mask4 = _mm_set1_epi8(0x0F);
@@ -85,9 +90,14 @@ impl BoardOps for BoardBits {
         unsafe { _pdep_u64(a, mask) }
     }
 
+    #[cfg(any(target_feature = "avx512bw", target_feature = "avx512vl"))]
+    fn after_pop_mask(popped: Self) -> (u64, u64) {
+        Self(unsafe { _mm_srlv_epi16(Self::full_mask().0, popped.popcount_u16x8().0) }).into()
+    }
+
+    #[cfg(not(any(target_feature = "avx512bw", target_feature = "avx512vl")))]
     fn after_pop_mask(popped: Self) -> (u64, u64) {
         let lxhx: u64x4 = unsafe {
-            // TODO: AVX512 has _mm_srlv_epi16
             let shift = _mm256_cvtepu16_epi32(popped.popcount_u16x8().0);
             let half_ones = _mm256_cvtepu16_epi32(Self::full_mask().0);
             let shifted = _mm256_srlv_epi32(half_ones, shift);
