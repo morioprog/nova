@@ -18,6 +18,13 @@ pub enum PuyoColor {
     YELLOW = 7,
 }
 
+const NORMAL_COLORS: &[PuyoColor; 4] = &[
+    PuyoColor::RED,
+    PuyoColor::GREEN,
+    PuyoColor::BLUE,
+    PuyoColor::YELLOW,
+];
+
 impl Color for PuyoColor {
     fn is_normal_color(&self) -> bool {
         (*self as u8) & 0b100 != 0
@@ -25,6 +32,10 @@ impl Color for PuyoColor {
 }
 
 impl PuyoColor {
+    pub const fn normal_colors() -> &'static [PuyoColor; 4] {
+        NORMAL_COLORS
+    }
+
     pub fn random_normal_color() -> Self {
         unsafe { mem::transmute(rand::thread_rng().gen_range(4u8..8u8)) }
     }
@@ -115,6 +126,13 @@ mod tests {
     fn random_normal_color() {
         for _ in 0..100 {
             assert!(PuyoColor::random_normal_color().is_normal_color());
+        }
+    }
+
+    #[test]
+    fn normal_colors() {
+        for c in PuyoColor::normal_colors() {
+            assert!(c.is_normal_color());
         }
     }
 }
