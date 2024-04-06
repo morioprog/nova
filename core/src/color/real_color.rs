@@ -15,19 +15,6 @@ pub enum RealColor {
 }
 
 impl Color for RealColor {
-    fn to_char(&self) -> char {
-        match *self {
-            RealColor::EMPTY => ' ',
-            RealColor::WALL => '#',
-            RealColor::OJAMA => 'O',
-            RealColor::RED => 'R',
-            RealColor::GREEN => 'G',
-            RealColor::BLUE => 'B',
-            RealColor::YELLOW => 'Y',
-            RealColor::PURPLE => 'P',
-        }
-    }
-
     fn is_normal_color(&self) -> bool {
         ((*self as u8) + 1) & 0b1100 != 0
     }
@@ -49,16 +36,31 @@ impl From<u8> for RealColor {
     }
 }
 
+impl From<RealColor> for u8 {
+    fn from(value: RealColor) -> Self {
+        match value {
+            RealColor::EMPTY => b' ',
+            RealColor::WALL => b'#',
+            RealColor::OJAMA => b'O',
+            RealColor::RED => b'R',
+            RealColor::GREEN => b'G',
+            RealColor::BLUE => b'B',
+            RealColor::YELLOW => b'Y',
+            RealColor::PURPLE => b'P',
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn to_char() {
-        assert_eq!(RealColor::EMPTY.to_char(), ' ');
-        assert_eq!(RealColor::WALL.to_char(), '#');
-        assert_eq!(RealColor::RED.to_char(), 'R');
-        assert_eq!(RealColor::PURPLE.to_char(), 'P');
+    fn to_byte() {
+        assert_eq!(u8::from(RealColor::EMPTY), b' ');
+        assert_eq!(u8::from(RealColor::WALL), b'#');
+        assert_eq!(u8::from(RealColor::RED), b'R');
+        assert_eq!(u8::from(RealColor::PURPLE), b'P');
     }
 
     #[test]

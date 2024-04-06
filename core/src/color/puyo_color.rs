@@ -5,7 +5,7 @@ use rand::Rng;
 use super::Color;
 
 /// [Color] impl for a simulation purpose.
-#[derive(Clone, Copy, PartialEq, Debug, Default)]
+#[derive(Clone, Copy, PartialEq, Default)]
 pub enum PuyoColor {
     #[default]
     EMPTY = 0,
@@ -19,19 +19,6 @@ pub enum PuyoColor {
 }
 
 impl Color for PuyoColor {
-    fn to_char(&self) -> char {
-        match *self {
-            PuyoColor::EMPTY => ' ',
-            PuyoColor::WALL => '#',
-            PuyoColor::OJAMA => 'O',
-            PuyoColor::IRON => '&',
-            PuyoColor::RED => 'R',
-            PuyoColor::GREEN => 'G',
-            PuyoColor::BLUE => 'B',
-            PuyoColor::YELLOW => 'Y',
-        }
-    }
-
     fn is_normal_color(&self) -> bool {
         (*self as u8) & 0b100 != 0
     }
@@ -41,14 +28,27 @@ impl PuyoColor {
     pub fn random_normal_color() -> Self {
         unsafe { mem::transmute(rand::thread_rng().gen_range(4u8..8u8)) }
     }
+
+    pub fn bg_escape_sequence(&self) -> &'static str {
+        match *self {
+            PuyoColor::EMPTY => "",
+            PuyoColor::WALL => "\x1b[48;5;253m",
+            PuyoColor::OJAMA => "\x1b[48;5;241m",
+            PuyoColor::IRON => "\x1b[48;5;237m",
+            PuyoColor::RED => "\x1b[48;5;161m",
+            PuyoColor::GREEN => "\x1b[48;5;28m",
+            PuyoColor::BLUE => "\x1b[48;5;26m",
+            PuyoColor::YELLOW => "\x1b[48;5;226m",
+        }
+    }
 }
 
 impl From<u8> for PuyoColor {
     fn from(value: u8) -> Self {
         match value {
             b' ' | b'.' => PuyoColor::EMPTY,
-            b'O' | b'o' | b'@' => PuyoColor::OJAMA,
             b'#' => PuyoColor::WALL,
+            b'O' | b'o' | b'@' => PuyoColor::OJAMA,
             b'&' => PuyoColor::IRON,
             b'R' | b'r' => PuyoColor::RED,
             b'G' | b'g' => PuyoColor::GREEN,
@@ -59,16 +59,44 @@ impl From<u8> for PuyoColor {
     }
 }
 
+impl From<PuyoColor> for u8 {
+    fn from(value: PuyoColor) -> Self {
+        match value {
+            PuyoColor::EMPTY => b' ',
+            PuyoColor::WALL => b'#',
+            PuyoColor::OJAMA => b'@',
+            PuyoColor::IRON => b'&',
+            PuyoColor::RED => b'R',
+            PuyoColor::GREEN => b'G',
+            PuyoColor::BLUE => b'B',
+            PuyoColor::YELLOW => b'Y',
+        }
+    }
+}
+
+impl std::fmt::Display for PuyoColor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}  \x1b[0m", self.bg_escape_sequence())
+    }
+}
+
+impl std::fmt::Debug for PuyoColor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let c: char = u8::from(*self).into();
+        write!(f, "{}{}{}\x1b[0m", self.bg_escape_sequence(), c, c)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn to_char() {
-        assert_eq!(PuyoColor::EMPTY.to_char(), ' ');
-        assert_eq!(PuyoColor::WALL.to_char(), '#');
-        assert_eq!(PuyoColor::RED.to_char(), 'R');
-        assert_eq!(PuyoColor::BLUE.to_char(), 'B');
+    fn to_byte() {
+        assert_eq!(u8::from(PuyoColor::EMPTY), b' ');
+        assert_eq!(u8::from(PuyoColor::WALL), b'#');
+        assert_eq!(u8::from(PuyoColor::RED), b'R');
+        assert_eq!(u8::from(PuyoColor::BLUE), b'B');
     }
 
     #[test]

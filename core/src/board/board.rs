@@ -5,12 +5,12 @@ use super::{
     HEIGHT,
 };
 use crate::{
-    board::{ENTIRE_WIDTH, WIDTH},
+    board::{ENTIRE_HEIGHT, ENTIRE_WIDTH, WIDTH},
     chain::{frame, score, Chain},
     color::PuyoColor,
 };
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq)]
 pub struct Board(BoardBits, BoardBits, BoardBits);
 
 impl Board {
@@ -253,10 +253,38 @@ impl From<[usize; WIDTH]> for Board {
     }
 }
 
+impl std::fmt::Display for Board {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = String::new();
+        for y in (0..ENTIRE_HEIGHT).rev() {
+            for x in 0..ENTIRE_WIDTH {
+                s.push_str(&format!("{}", self.get(x, y)));
+            }
+            s.push('\n')
+        }
+
+        write!(f, "{}", s)
+    }
+}
+
+impl std::fmt::Debug for Board {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = String::new();
+        for y in (0..ENTIRE_HEIGHT).rev() {
+            for x in 0..ENTIRE_WIDTH {
+                s.push_str(&format!("{:?}", self.get(x, y)));
+            }
+            s.push('\n')
+        }
+
+        write!(f, "{}", s)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{board::ENTIRE_HEIGHT, color::PuyoColor::*};
+    use crate::color::PuyoColor::*;
 
     #[test]
     fn new() {
