@@ -7,7 +7,7 @@ use crate::{
 };
 
 impl Board {
-    fn detect_potential_chain<F>(&self, max_cmpl: u8, mut callback: F)
+    pub fn detect_potential_chain<F>(&self, max_cmpl: u8, mut callback: F)
     where
         F: FnMut(Self, ComplementedPuyo, Chain),
     {

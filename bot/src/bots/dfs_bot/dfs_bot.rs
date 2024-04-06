@@ -13,8 +13,8 @@ impl Bot for DfsBot {
     }
 
     fn think_internal_1p(&self, player_state: &PlayerState) -> DecisionWithoutElapsed {
-        // cannot read more than depth 3
-        let depth = player_state.tumos.len().min(3);
+        // cannot read more than depth 2
+        let depth = player_state.tumos.len().min(2);
 
         let mut nodes: Vec<Node> =
             vec![Node::from_player_state(player_state, &[], NORMAL_EVALUATOR)];
@@ -55,7 +55,7 @@ impl Bot for DfsBot {
         });
         if let Some(chain) = best_chain {
             let score = chain.chain.as_ref().unwrap().score();
-            if score >= 30000 || nodes.is_empty() {
+            if score >= 60000 || nodes.is_empty() {
                 return DecisionWithoutElapsed {
                     placements: chain.placements.clone(),
                     logging: Some(format!("Found chain with score {}", score)),
