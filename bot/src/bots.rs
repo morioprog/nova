@@ -2,6 +2,7 @@ mod dfs_bot;
 mod random_bot;
 
 pub use dfs_bot::DfsBot;
+use eval::NORMAL_EVALUATOR;
 pub use random_bot::RandomBot;
 
 use crate::Bot;
@@ -9,7 +10,9 @@ use crate::Bot;
 pub fn get_bot(bot_name: &str) -> Box<dyn Bot> {
     match bot_name {
         "RandomBot" => Box::new(RandomBot {}),
-        "DfsBot" => Box::new(DfsBot {}),
+        "DfsBot" => Box::new(DfsBot {
+            evaluator: *NORMAL_EVALUATOR,
+        }),
         _ => panic!("Bot with name \"{}\" not found", bot_name),
     }
 }

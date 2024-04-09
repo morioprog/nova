@@ -8,10 +8,15 @@ pub(super) trait BoardFeature {
     fn dent(&self, x: usize) -> i32;
     fn dead_cells(&self) -> i32;
     fn connectivity(&self) -> (i32, i32);
+    fn non_u_shape(&self) -> (i32, i32);
 }
 
 impl BoardFeature for Board {
     fn bump(&self, x: usize) -> i32 {
+        if x == 1 || x == W {
+            return 0;
+        }
+
         let heights = self.height_array();
 
         let h_l = if x == 1 { 14 } else { heights[x - 1] as i32 };
@@ -81,6 +86,27 @@ impl BoardFeature for Board {
 
         (conn_2, conn_3)
     }
+
+    fn non_u_shape(&self) -> (i32, i32) {
+        let heights = self.height_array();
+        let avg_height = (heights[1..=W].iter().sum::<usize>() / W) as i32;
+
+        let (mut sum, mut sq_sum) = (0, 0);
+        for x in 1..=W {
+            let ideal_height = match x {
+                1 | 6 => avg_height + 2,
+                2 | 5 => avg_height,
+                3 | 4 => avg_height.saturating_sub(2),
+                _ => unreachable!(),
+            };
+
+            let diff = ideal_height.abs_diff(heights[x] as i32) as i32;
+            sum += diff;
+            sq_sum += diff * diff;
+        }
+
+        (sum, sq_sum)
+    }
 }
 
 #[cfg(test)]
@@ -139,4 +165,6 @@ mod tests {
         ));
         assert_eq!(board.connectivity(), (4, 5));
     }
+
+    // TODO: add test for non-u-shape
 }

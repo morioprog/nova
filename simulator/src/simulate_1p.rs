@@ -28,8 +28,8 @@ pub fn simulate_1p(bot: Box<dyn Bot>) -> Simulate1PResult {
 
         let chain = player_state.board.simulate();
         player_state.score += chain.score();
-        // TODO: pass 80000 as parameter
-        if chain.score() >= 80000 {
+        // TODO: pass 70000 as parameter
+        if chain.score() >= 70000 {
             break;
         }
 

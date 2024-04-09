@@ -1,11 +1,13 @@
 use core::{placement::Placement, player_state::PlayerState};
 
-use eval::NORMAL_EVALUATOR;
+use eval::{Evaluator, NORMAL_EVALUATOR};
 
 use super::node::Node;
 use crate::{decision::DecisionWithoutElapsed, Bot};
 
-pub struct DfsBot {}
+pub struct DfsBot {
+    pub evaluator: Evaluator,
+}
 
 impl Bot for DfsBot {
     fn name(&self) -> &'static str {
@@ -55,7 +57,7 @@ impl Bot for DfsBot {
         });
         if let Some(chain) = best_chain {
             let score = chain.chain.as_ref().unwrap().score();
-            if score >= 60000 || nodes.is_empty() {
+            if score >= 70000 || nodes.is_empty() {
                 return DecisionWithoutElapsed {
                     placements: chain.placements.clone(),
                     logging: Some(format!("Found chain with score {}", score)),

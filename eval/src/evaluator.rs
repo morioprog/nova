@@ -1,5 +1,5 @@
 use core::{
-    board::{Board, WIDTH},
+    board::{Board, HEIGHT, WIDTH},
     chain::Chain,
     player_state::PlayerState,
     search::ComplementedPuyo,
@@ -7,12 +7,16 @@ use core::{
 
 use crate::feature_extraction::BoardFeature;
 
+#[derive(Clone, Copy, Debug)]
 pub struct Evaluator {
     pub bump: i32,
     pub dent: i32,
     pub dead_cells: i32,
     pub conn_2: i32,
     pub conn_3: i32,
+    // U-shape
+    pub non_u_shape: i32,
+    pub non_u_shape_sq: i32,
     // Detected chains
     /// Sum of scores of detected chains divided by 1024.
     /// (Using 1024 instead of 1000 (<=> "k") since the division can be done by a simple bit shift.)
@@ -20,13 +24,16 @@ pub struct Evaluator {
 }
 
 pub const NORMAL_EVALUATOR: &Evaluator = &Evaluator {
-    bump: -84,
-    dent: -352,
-    dead_cells: -339,
-    conn_2: 52,
-    conn_3: 345,
+    bump: -348,
+    dent: -152,
+    dead_cells: -407,
+    conn_2: 21,
+    conn_3: 63,
+    // U-shape
+    non_u_shape: -53,
+    non_u_shape_sq: -64,
     // Detected chains
-    score_per_k: 20,
+    score_per_k: 30,
 };
 
 impl Evaluator {
@@ -37,11 +44,16 @@ impl Evaluator {
             return i32::MIN;
         }
 
+        let heights = player_state.board.height_array();
+        let avg_height = heights[1..=WIDTH].iter().sum::<usize>() / WIDTH;
+
         let mut score = 0i32;
 
         for x in 1..=WIDTH {
-            score += self.bump * player_state.board.bump(x);
-            score += self.dent * player_state.board.dent(x);
+            let bump = player_state.board.bump(x);
+            let dent = player_state.board.dent(x);
+            score += self.bump * (bump * bump);
+            score += self.dent * (dent * dent);
         }
 
         score += self.dead_cells * player_state.board.dead_cells();
@@ -50,9 +62,20 @@ impl Evaluator {
         score += self.conn_2 * conn_2;
         score += self.conn_3 * conn_3;
 
+        let (non_u_shape, non_u_shape_sq) = player_state.board.non_u_shape();
+        let r_shift = if avg_height <= 3 {
+            3
+        } else if avg_height >= HEIGHT - 2 {
+            1
+        } else {
+            0
+        };
+        score += (self.non_u_shape * non_u_shape) >> r_shift;
+        score += (self.non_u_shape_sq * non_u_shape_sq) >> r_shift;
+
         let mut score_per_k = 0;
         player_state.board.detect_potential_chain(
-            3,
+            2,
             |_board: Board, _cp: ComplementedPuyo, chain: Chain| {
                 // devide by 1024
                 score_per_k += chain.score() >> 10;
