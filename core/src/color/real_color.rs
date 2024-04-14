@@ -14,9 +14,23 @@ pub enum RealColor {
     PURPLE = 7,
 }
 
+const NORMAL_COLORS: &[RealColor; 5] = &[
+    RealColor::RED,
+    RealColor::GREEN,
+    RealColor::BLUE,
+    RealColor::YELLOW,
+    RealColor::PURPLE,
+];
+
 impl Color for RealColor {
     fn is_normal_color(&self) -> bool {
         ((*self as u8) + 1) & 0b1100 != 0
+    }
+}
+
+impl RealColor {
+    pub const fn normal_colors() -> &'static [RealColor; 5] {
+        NORMAL_COLORS
     }
 }
 
