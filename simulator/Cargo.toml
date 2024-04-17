@@ -1,8 +1,8 @@
 [package]
-name = "ghoti-simulator"
+name = "nova-simulator"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-core = { path = "../core", package = "ghoti-core" }
-bot = { path = "../bot", package = "ghoti-bot" }
+core = { path = "../core", package = "nova-core" }
+bot = { path = "../bot", package = "nova-bot" }

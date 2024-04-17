@@ -1,5 +1,5 @@
 use eval::NORMAL_EVALUATOR;
-use ghoti_tuner::simulate::select_best_evaluator;
+use nova_tuner::simulate::select_best_evaluator;
 use rand::Rng;
 
 fn main() {

@@ -1,5 +1,5 @@
 use bot::bots::get_bot;
-use ghoti_simulator::simulate_1p;
+use nova_simulator::simulate_1p;
 
 fn main() {
     let bot_name = "DfsBot";

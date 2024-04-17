@@ -1,9 +1,9 @@
 #![feature(test)]
 
-extern crate ghoti_core;
+extern crate nova_core;
 extern crate test;
 
-use ghoti_core::board::Board;
+use nova_core::board::Board;
 use test::Bencher;
 
 // AVX2   : 357 ns/iter (+/- 14)

@@ -1,9 +1,9 @@
 [package]
-name = "ghoti-bot"
+name = "nova-bot"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-core = { path = "../core", package = "ghoti-core" }
-eval = { path = "../eval", package = "ghoti-eval" }
+core = { path = "../core", package = "nova-core" }
+eval = { path = "../eval", package = "nova-eval" }
 rand = "0.8.5"

@@ -1,10 +1,10 @@
 [package]
-name = "ghoti-tuner"
+name = "nova-tuner"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-eval = { path = "../eval", package = "ghoti-eval" }
-bot = { path = "../bot", package = "ghoti-bot" }
-simulator = { path = "../simulator", package = "ghoti-simulator" }
+eval = { path = "../eval", package = "nova-eval" }
+bot = { path = "../bot", package = "nova-bot" }
+simulator = { path = "../simulator", package = "nova-simulator" }
 rand = "0.8.5"
