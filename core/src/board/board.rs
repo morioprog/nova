@@ -143,6 +143,22 @@ impl Board {
         ))
     }
 
+    pub fn apply_gravity(&mut self) {
+        for x in 1..=WIDTH {
+            let mut puyos = vec![];
+            for y in 1..=(HEIGHT + 1) {
+                let color = self.get(x, y);
+                if color != PuyoColor::EMPTY {
+                    puyos.push(color);
+                    self.set(x, y, PuyoColor::EMPTY);
+                }
+            }
+            for (_y, c) in puyos.iter().enumerate() {
+                self.set(x, _y + 1, *c);
+            }
+        }
+    }
+
     pub fn pop_and_apply_gravity(&mut self, popped_puyos: BoardBits) {
         let (bef_lo, bef_hi) = BoardBits::before_pop_mask(popped_puyos);
         let (aft_lo, aft_hi) = BoardBits::after_pop_mask(popped_puyos);
@@ -496,6 +512,40 @@ mod tests {
                 score::conn_bonus(5) + score::conn_bonus(4) + score::conn_bonus(6), // conn_bonus
             ))
         );
+    }
+
+    #[test]
+    fn apply_gravity() {
+        let testcases = [
+            (
+                Board::from(concat!(
+                    "B...G.", // 4
+                    ".YYGGB", // 3
+                    "..G.BB", // 2
+                    "...YYY", // 1
+                )),
+                Board::from(concat!(
+                    "....G.", // 4
+                    "....GB", // 3
+                    "..YGBB", // 2
+                    "BYGYYY", // 1
+                )),
+            ),
+            (
+                Board::from(concat!(
+                    "RGBYOR", // 2
+                    "......", // 1
+                )),
+                Board::from("RGBYOR"),
+            ),
+            (Board::from("ROYBGR"), Board::from("ROYBGR")),
+        ];
+
+        for (mut before, after) in testcases {
+            before.apply_gravity();
+
+            assert_eq!(before, after);
+        }
     }
 
     #[test]
