@@ -73,22 +73,36 @@ impl Board {
                 return Some(0);
             }
 
+            let mut max_frames = 0;
+
             for i in x_rng.rev() {
                 if heights[i] != HEIGHT {
                     continue;
                 }
 
+                let mut frames = None;
+
                 for j in (i + 1)..=WIDTH {
                     if heights[j] == HEIGHT - 1 {
-                        return Some(0);
-                    }
-                    if heights[j] >= HEIGHT {
+                        frames = Some(0);
                         break;
                     }
+                    if heights[j] > HEIGHT {
+                        return None;
+                    }
+                    if heights[j] == HEIGHT && j > 3 {
+                        return None;
+                    }
                 }
+
+                if frames.is_none() {
+                    return None;
+                }
+
+                max_frames = max_frames.max(frames.unwrap());
             }
 
-            return None;
+            return Some(max_frames);
         }
 
         // x > 3 below here
@@ -97,22 +111,36 @@ impl Board {
             return Some(0);
         }
 
+        let mut max_frames = 0;
+
         for i in x_rng {
             if heights[i] != HEIGHT {
                 continue;
             }
 
+            let mut frames = None;
+
             for j in (1..=(i - 1)).rev() {
                 if heights[j] == HEIGHT - 1 {
-                    return Some(0);
-                }
-                if heights[j] >= HEIGHT {
+                    frames = Some(0);
                     break;
                 }
+                if heights[j] > HEIGHT {
+                    return None;
+                }
+                if heights[j] == HEIGHT && j < 3 {
+                    return None;
+                }
             }
+
+            if frames.is_none() {
+                return None;
+            }
+
+            max_frames = max_frames.max(frames.unwrap());
         }
 
-        None
+        Some(max_frames)
     }
 }
 
@@ -273,6 +301,49 @@ mod tests {
     fn is_placeable_upper_7() {
         let board: Board = [11, 13, 11, 13, 11, 11].into();
         let reachables = [Placement::new(3, 0), Placement::new(3, 2)];
+
+        for placement in Placement::placements_non_zoro() {
+            assert_eq!(
+                board.is_placeable(placement),
+                reachables.contains(placement),
+                "Failed at ({}, {})",
+                placement.axis_x(),
+                placement.rot()
+            );
+        }
+    }
+
+    #[test]
+    fn is_placeable_upper_8() {
+        let board: Board = [10, 12, 10, 10, 11, 12].into();
+        let unreachables = [Placement::new(2, 2), Placement::new(6, 2)];
+
+        for placement in Placement::placements_non_zoro() {
+            assert_eq!(
+                board.is_placeable(placement),
+                !unreachables.contains(placement),
+                "Failed at ({}, {})",
+                placement.axis_x(),
+                placement.rot()
+            );
+        }
+    }
+
+    #[test]
+    fn is_placeable_corner() {
+        let board: Board = [10, 10, 10, 12, 11, 12].into();
+        let reachables = [
+            Placement::new(1, 0),
+            Placement::new(1, 1),
+            Placement::new(1, 2),
+            Placement::new(2, 0),
+            Placement::new(2, 1),
+            Placement::new(2, 2),
+            Placement::new(2, 3),
+            Placement::new(3, 0),
+            Placement::new(3, 2),
+            Placement::new(3, 3),
+        ];
 
         for placement in Placement::placements_non_zoro() {
             assert_eq!(
