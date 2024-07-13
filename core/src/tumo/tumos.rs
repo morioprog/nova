@@ -50,12 +50,6 @@ impl<C: Color> PairQueue<C> {
     }
 
     pub fn rotate(&mut self) {
-        debug_assert_eq!(
-            self.len, TUMO_LOOP,
-            "len should be {} but {} when rotating",
-            TUMO_LOOP, self.len
-        );
-
         // this works since `TUMO_LOOP` is a power of two
         self.head = (self.head + 1) & (TUMO_LOOP - 1);
     }
