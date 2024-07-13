@@ -143,6 +143,19 @@ impl Board {
         ))
     }
 
+    pub fn has_floating_puyo(&self) -> bool {
+        let heights = self.height_array();
+        for x in 1..=WIDTH {
+            for y in 1..=heights[x] {
+                if self.get(x, y) == PuyoColor::EMPTY {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
     pub fn apply_gravity(&mut self) {
         for x in 1..=WIDTH {
             let mut puyos = vec![];
@@ -512,6 +525,42 @@ mod tests {
                 score::conn_bonus(5) + score::conn_bonus(4) + score::conn_bonus(6), // conn_bonus
             ))
         );
+    }
+
+    #[test]
+    fn has_floating_puyo() {
+        let testcases = [
+            (
+                Board::from(concat!(
+                    "B...G.", // 4
+                    ".YYGGB", // 3
+                    "..G.BB", // 2
+                    "...YYY", // 1
+                )),
+                true,
+            ),
+            (
+                Board::from(concat!(
+                    "....G.", // 4
+                    "....GB", // 3
+                    "..YGBB", // 2
+                    "BYGYYY", // 1
+                )),
+                false,
+            ),
+            (
+                Board::from(concat!(
+                    "RGBYOR", // 2
+                    "......", // 1
+                )),
+                true,
+            ),
+            (Board::from("ROYBGR"), false),
+        ];
+
+        for (board, expected) in testcases {
+            assert_eq!(board.has_floating_puyo(), expected);
+        }
     }
 
     #[test]
