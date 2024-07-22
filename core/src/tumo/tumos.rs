@@ -60,6 +60,14 @@ impl<C: Color> PairQueue<C> {
         self.pairs[index]
     }
 
+    pub fn set_raw(&mut self, index: usize, x: Pair<C>) {
+        self.pairs[index] = x
+    }
+
+    pub fn set_len(&mut self, len: usize) {
+        self.len = len
+    }
+
     pub fn slice_visible_tumos(&self, visible: usize) -> Self {
         let mut tumos = vec![];
         for i in 0..visible {
