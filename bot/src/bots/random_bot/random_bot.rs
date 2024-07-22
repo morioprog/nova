@@ -11,7 +11,11 @@ impl Bot for RandomBot {
         "RandomBot"
     }
 
-    fn think_internal_1p(&self, player_state: &PlayerState) -> DecisionWithoutElapsed {
+    fn think_internal_1p(
+        &self,
+        player_state: &PlayerState,
+        _think_frame: Option<u32>,
+    ) -> DecisionWithoutElapsed {
         DecisionWithoutElapsed {
             placements: vec![Self::random_valid_placement(
                 &player_state.board,
@@ -25,8 +29,9 @@ impl Bot for RandomBot {
         &self,
         player_state_1p: &PlayerState,
         _player_state_2p: &PlayerState,
+        think_frame: Option<u32>,
     ) -> DecisionWithoutElapsed {
-        self.think_internal_1p(player_state_1p)
+        self.think_internal_1p(player_state_1p, think_frame)
     }
 }
 
@@ -68,11 +73,14 @@ mod tests {
 
         for board in &boards {
             for tumos in &tumos_pattern {
-                let decision = bot.think_internal_1p(&PlayerState {
-                    board: board.clone(),
-                    tumos: tumos.clone(),
-                    ..PlayerState::zero()
-                });
+                let decision = bot.think_internal_1p(
+                    &PlayerState {
+                        board: board.clone(),
+                        tumos: tumos.clone(),
+                        ..PlayerState::zero()
+                    },
+                    None,
+                );
                 assert!(!decision.placements.is_empty());
                 assert!(board.is_placeable(decision.placements.first().unwrap()));
             }

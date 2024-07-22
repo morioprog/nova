@@ -14,7 +14,11 @@ impl Bot for DfsBot {
         "DfsBot"
     }
 
-    fn think_internal_1p(&self, player_state: &PlayerState) -> DecisionWithoutElapsed {
+    fn think_internal_1p(
+        &self,
+        player_state: &PlayerState,
+        _think_frame: Option<u32>,
+    ) -> DecisionWithoutElapsed {
         // cannot read more than depth 2
         let depth = player_state.tumos.len().min(2);
 
@@ -84,9 +88,10 @@ impl Bot for DfsBot {
 
     fn think_internal_2p(
         &self,
-        _player_state_1p: &PlayerState,
+        player_state_1p: &PlayerState,
         _player_state_2p: &PlayerState,
+        think_frame: Option<u32>,
     ) -> DecisionWithoutElapsed {
-        todo!()
+        self.think_internal_1p(player_state_1p, think_frame)
     }
 }

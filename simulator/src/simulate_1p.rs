@@ -13,7 +13,7 @@ pub fn simulate_1p(bot: Box<dyn Bot>) -> Simulate1PResult {
 
     // TODO: pass 50 as parameter
     for _ in 0..50 {
-        let decision = bot.think_1p(&player_state.limit_visible_tumos(visible));
+        let decision = bot.think_1p(&player_state.limit_visible_tumos(visible), None);
 
         let Some(placement) = decision.placements.first() else {
             panic!("Bot returned empty placement!")
