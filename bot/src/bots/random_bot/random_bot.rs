@@ -77,7 +77,7 @@ mod tests {
                     &PlayerState {
                         board: board.clone(),
                         tumos: tumos.clone(),
-                        ..PlayerState::zero()
+                        ..PlayerState::default()
                     },
                     None,
                 );

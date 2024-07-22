@@ -16,12 +16,8 @@ impl PlayerState {
     pub fn initial_state(tumos: Tumos) -> Self {
         Self {
             tumos,
-            ..Self::zero()
+            ..Self::default()
         }
-    }
-
-    pub fn zero() -> Self {
-        Self::new(Board::new(), Tumos::default(), 0, 0, 0, 0, 0, 0)
     }
 
     pub const fn new(
@@ -51,6 +47,12 @@ impl PlayerState {
             tumos: self.tumos.slice_visible_tumos(visible),
             ..(*self).clone()
         }
+    }
+}
+
+impl Default for PlayerState {
+    fn default() -> Self {
+        Self::new(Board::new(), Tumos::default(), 0, 0, 0, 0, 0, 0)
     }
 }
 
