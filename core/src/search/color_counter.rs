@@ -12,6 +12,7 @@ impl ColorCounter {
         self.0 += val << Self::color_to_shift(c);
     }
 
+    #[allow(dead_code)]
     pub fn get(&self, c: PuyoColor) -> u16 {
         (self.0 >> Self::color_to_shift(c)) & 0b1111
     }
