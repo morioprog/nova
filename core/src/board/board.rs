@@ -210,7 +210,7 @@ impl Board {
         self.simulate_from_middle(1)
     }
 
-    pub fn simulate_from_middle(&mut self, initial_chain: usize) -> Chain {
+    pub fn simulate_from_middle(&mut self, initial_chain: u32) -> Chain {
         let escaped = self.escape_above_13th_row();
 
         let mut chain = initial_chain - 1;
@@ -225,7 +225,7 @@ impl Board {
             };
 
             chain += 1;
-            let chain_bonus = score::chain_bonus(chain);
+            let chain_bonus = score::chain_bonus(chain as usize);
             score += num_popped_puyos * (chain_bonus + color_bonus + conn_bonus).clamp(1, 999);
             frame += frame::chain_frames(self.max_drops(popped_puyos));
 
