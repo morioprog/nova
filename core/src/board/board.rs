@@ -207,9 +207,13 @@ impl Board {
     }
 
     pub fn simulate(&mut self) -> Chain {
+        self.simulate_from_middle(1)
+    }
+
+    pub fn simulate_from_middle(&mut self, initial_chain: usize) -> Chain {
         let escaped = self.escape_above_13th_row();
 
-        let mut chain = 0;
+        let mut chain = initial_chain - 1;
         let mut score = 0;
         let mut frame = 0;
 
@@ -768,6 +772,49 @@ mod tests {
 
         for (mut board, chain) in board_and_chain {
             assert_eq!(board.simulate(), chain);
+        }
+    }
+
+    #[test]
+    fn simulate_from_middle() {
+        let board_and_chain = [
+            (
+                Board::from(".BBBB."),
+                3,
+                Chain::new(3, 40 * 16, frame::chain_frames(0)),
+            ),
+            (
+                Board::from(concat!(
+                    ".RBRB.", // 4
+                    "RBRBR.", // 3
+                    "RBRBR.", // 2
+                    "RBRBRR"  // 1
+                )),
+                2,
+                Chain::new(
+                    6,
+                    40 * 8 + 40 * 16 + 40 * 32 + 40 * 64 + 40 * 96,
+                    frame::chain_frames(3)
+                        + frame::chain_frames(3)
+                        + frame::chain_frames(3)
+                        + frame::chain_frames(3)
+                        + frame::chain_frames(0),
+                ),
+            ),
+            (
+                Board::from(concat!(
+                    ".YGGY.", // 4
+                    "BBBBBB", // 3
+                    "GYBBYG", // 2
+                    "BBBBBB"  // 1
+                )),
+                1,
+                Chain::new(1, 140 * 10, frame::chain_frames(3)),
+            ),
+        ];
+
+        for (mut board, initial_chain, chain) in board_and_chain {
+            assert_eq!(board.simulate_from_middle(initial_chain), chain);
         }
     }
 
