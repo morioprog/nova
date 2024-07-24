@@ -54,10 +54,12 @@ impl<C: Color> PairQueue<C> {
         self.head = (self.head + 1) & (TUMO_LOOP - 1);
     }
 
-    pub fn get_raw(&self, index: usize) -> Pair<C> {
-        debug_assert!(index < self.len);
-
-        self.pairs[index]
+    pub fn get_raw(&self, index: usize) -> Option<Pair<C>> {
+        if index < self.len {
+            Some(self.pairs[index])
+        } else {
+            None
+        }
     }
 
     pub fn set_raw(&mut self, index: usize, x: Pair<C>) {

@@ -55,8 +55,8 @@ fn encode_decisions(tumos: &Tumos, placements: &[Placement]) -> String {
     let mut encoded = String::new();
 
     for (i, placement) in placements.iter().enumerate() {
-        let puyo_a = color_to_int(tumos.get_raw(i).axis());
-        let puyo_c = color_to_int(tumos.get_raw(i).child());
+        let puyo_a = color_to_int(tumos.get_raw(i).unwrap().axis());
+        let puyo_c = color_to_int(tumos.get_raw(i).unwrap().child());
         let pair = puyo_a * 5 + puyo_c;
         let plcm = placement_to_int(placement);
         let data = plcm << 7 | pair;
