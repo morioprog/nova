@@ -48,6 +48,25 @@ impl PlayerState {
             ..(*self).clone()
         }
     }
+
+    pub fn limit_visible_tumos_pvp(
+        visible: usize,
+        state_1p: &Self,
+        state_2p: &Self,
+    ) -> (Self, Self) {
+        let (tumos_1p, tumos_2p) =
+            Tumos::slice_visible_tumos_pvp(visible, &state_1p.tumos, &state_2p.tumos);
+        (
+            Self {
+                tumos: tumos_1p,
+                ..state_1p.clone()
+            },
+            Self {
+                tumos: tumos_2p,
+                ..state_2p.clone()
+            },
+        )
+    }
 }
 
 impl Default for PlayerState {
