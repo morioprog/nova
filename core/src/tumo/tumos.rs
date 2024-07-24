@@ -11,6 +11,7 @@ pub struct PairQueue<C: Color> {
     len: usize,
     head: usize,
     pairs: [Pair<C>; TUMO_LOOP],
+    looped: bool,
 }
 
 impl<C: Color> Default for PairQueue<C> {
@@ -19,6 +20,7 @@ impl<C: Color> Default for PairQueue<C> {
             len: 0,
             head: 0,
             pairs: from_fn(|_| Default::default()),
+            looped: false,
         }
     }
 }
@@ -49,7 +51,11 @@ impl<C: Color> PairQueue<C> {
         self.len += 1;
     }
 
-    pub fn rotate(&mut self) {
+    pub fn rotate(&mut self, visible: usize) {
+        if self.head + visible >= TUMO_LOOP {
+            self.looped = true
+        }
+
         // this works since `TUMO_LOOP` is a power of two
         self.head = (self.head + 1) & (TUMO_LOOP - 1);
     }
@@ -164,11 +170,11 @@ mod tests {
         assert_eq!(tumos[0].axis(), RED);
         assert_eq!(tumos[1].axis(), GREEN);
 
-        tumos.rotate();
+        tumos.rotate(0);
         assert_eq!(tumos[0].axis(), GREEN);
         assert_eq!(tumos[1].axis(), BLUE);
 
-        tumos.rotate();
+        tumos.rotate(0);
         assert_eq!(tumos[0].axis(), BLUE);
         assert_eq!(tumos[1].axis(), YELLOW);
     }
@@ -183,15 +189,6 @@ mod tests {
 
         // should panic here
         tumos.push(&Tumo::default());
-    }
-
-    #[test]
-    #[should_panic]
-    fn rotate_hasnt_maxed_out() {
-        let mut tumos = Tumos::default();
-
-        // should panic here
-        tumos.rotate();
     }
 
     #[test]

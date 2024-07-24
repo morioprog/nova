@@ -37,7 +37,7 @@ pub fn simulate_1p(bot: Box<dyn Bot>) -> Simulate1PResult {
             break;
         }
 
-        player_state.tumos.rotate();
+        player_state.tumos.rotate(visible);
     }
 
     Simulate1PResult {
