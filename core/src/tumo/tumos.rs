@@ -76,12 +76,10 @@ impl<C: Color> PairQueue<C> {
         self.len = len
     }
 
-    pub fn slice_visible_tumos(&self, visible: usize) -> Self {
-        let mut tumos = vec![];
-        for i in 0..visible {
-            tumos.push(self[i]);
-        }
-        Self::new(&tumos)
+    pub fn slice_visible_tumos(&self, visible: usize, head_idx: Option<usize>) -> Self {
+        let head_idx = head_idx.unwrap_or(self.head);
+
+        Self::new(&self.pairs[head_idx..(head_idx + visible)])
     }
 }
 

@@ -44,7 +44,7 @@ impl PlayerState {
 
     pub fn limit_visible_tumos(&self, visible: usize) -> Self {
         Self {
-            tumos: self.tumos.slice_visible_tumos(visible),
+            tumos: self.tumos.slice_visible_tumos(visible, None),
             ..(*self).clone()
         }
     }
