@@ -77,9 +77,52 @@ impl<C: Color> PairQueue<C> {
     }
 
     pub fn slice_visible_tumos(&self, visible: usize, head_idx: Option<usize>) -> Self {
-        let head_idx = head_idx.unwrap_or(self.head);
+        if self.looped {
+            return if head_idx.is_none() {
+                self.clone()
+            } else {
+                let mut tumos = self.clone();
+                tumos.head = head_idx.unwrap();
+                tumos
+            };
+        }
 
-        Self::new(&self.pairs[head_idx..(head_idx + visible)])
+        let head_idx = head_idx.unwrap_or(self.head);
+        let mut tumos = Self::default();
+        for i in head_idx..(head_idx + visible) {
+            if let Some(tumo) = self.get_raw(i) {
+                tumos.push(&tumo);
+            }
+        }
+        tumos
+    }
+
+    pub fn slice_visible_tumos_pvp(
+        visible: usize,
+        tumos_1p: &Self,
+        tumos_2p: &Self,
+    ) -> (Self, Self) {
+        if tumos_1p.looped {
+            let mut new_tumos_2p = tumos_1p.clone();
+            new_tumos_2p.head = tumos_2p.head;
+            return (tumos_1p.clone(), new_tumos_2p);
+        }
+        if tumos_2p.looped {
+            let mut new_tumos_1p = tumos_2p.clone();
+            new_tumos_1p.head = tumos_1p.head;
+            return (new_tumos_1p, tumos_2p.clone());
+        }
+
+        let longer = if tumos_1p.head > tumos_2p.head {
+            tumos_1p
+        } else {
+            tumos_2p
+        };
+        let last_visible_idx = longer.head + visible;
+        (
+            longer.slice_visible_tumos(last_visible_idx - tumos_1p.head, Some(tumos_1p.head)),
+            longer.slice_visible_tumos(last_visible_idx - tumos_2p.head, Some(tumos_2p.head)),
+        )
     }
 }
 
@@ -195,6 +238,51 @@ mod tests {
             let tumos = Tumos::new_random();
             for i in 0..tumos.len() {
                 assert!(tumos[i].is_valid());
+            }
+        }
+    }
+
+    #[test]
+    fn slice_visible_tumos() {
+        let mut tumos = Tumos::new_random();
+        let testcases = [(10, 7, 3, 3), (9, 7, 3, 2)];
+        for (len, head, visible, expected_len) in testcases {
+            tumos.len = len;
+            tumos.head = head;
+
+            let sliced = tumos.slice_visible_tumos(visible, None);
+
+            assert_eq!(sliced.len(), expected_len);
+            for i in 0..expected_len {
+                assert_eq!(tumos[i], sliced[i]);
+            }
+        }
+    }
+
+    #[test]
+    fn slice_visible_tumos_pvp() {
+        let tumos = Tumos::new_random();
+        let mut tumos_1p = tumos.clone();
+        let mut tumos_2p = tumos.clone();
+        let testcases = [((10, 6), (9, 5), 3, (3, 4)), ((9, 5), (10, 6), 3, (4, 3))];
+        for ((len_1p, head_1p), (len_2p, head_2p), visible, (expected_len_1p, expected_len_2p)) in
+            testcases
+        {
+            tumos_1p.len = len_1p;
+            tumos_1p.head = head_1p;
+            tumos_2p.len = len_2p;
+            tumos_2p.head = head_2p;
+
+            let (sliced_1p, sliced_2p) =
+                Tumos::slice_visible_tumos_pvp(visible, &tumos_1p, &tumos_2p);
+
+            assert_eq!(sliced_1p.len(), expected_len_1p);
+            assert_eq!(sliced_2p.len(), expected_len_2p);
+            for i in 0..expected_len_1p {
+                assert_eq!(tumos.get_raw(head_1p + i).unwrap(), sliced_1p[i]);
+            }
+            for i in 0..expected_len_2p {
+                assert_eq!(tumos.get_raw(head_2p + i).unwrap(), sliced_2p[i]);
             }
         }
     }
