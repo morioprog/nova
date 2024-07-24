@@ -33,7 +33,7 @@ impl Bot for BeamSearchBot {
         think_frame: Option<u32>,
     ) -> DecisionWithoutElapsed {
         let (depth, width) = get_best_depth_and_width(think_frame);
-        let parallel_n = if player_state_1p.tumos.available_tumo_len() >= depth {
+        let parallel_n = if player_state_1p.tumos.available_tumo_len() < depth {
             PARALLEL
         } else {
             1
@@ -96,7 +96,7 @@ fn think_single_thread(
     depth: usize,
     width: usize,
     mut player_state_1p: PlayerState,
-    _player_state_2p: PlayerState,
+    player_state_2p: PlayerState,
     evaluator: Evaluator,
 ) -> DecisionWithoutElapsed {
     // monte carlo
@@ -125,7 +125,14 @@ fn think_single_thread(
 
                 let nxt: Node = node.place_tumo(&tumo, placement, &evaluator);
                 if nxt.chain.is_some() {
-                    chain_nodes.push(nxt);
+                    let limit = if player_state_2p.current_chain > 0 {
+                        1
+                    } else {
+                        3
+                    };
+                    if d < limit {
+                        chain_nodes.push(nxt);
+                    }
                     continue;
                 }
 
@@ -142,6 +149,10 @@ fn think_single_thread(
             }
         }
 
+        if nxt_nodes.is_empty() {
+            break;
+        }
+
         sort_by_eval(&mut nxt_nodes);
         nodes = nxt_nodes;
     }
@@ -149,7 +160,7 @@ fn think_single_thread(
     if !chain_nodes.is_empty() {
         let chain_node = max_by_chain(&chain_nodes);
         // TODO: better fire condition
-        if chain_node.chain.as_ref().unwrap().score() >= 50000 {
+        if nodes.is_empty() || chain_node.chain.as_ref().unwrap().score() >= 50000 {
             return DecisionWithoutElapsed {
                 placements: chain_node.placements.clone(),
                 logging: Some(format!(
