@@ -40,6 +40,10 @@ impl<C: Color> PairQueue<C> {
         self.len
     }
 
+    pub fn available_tumo_len(&self) -> usize {
+        self.len - self.head
+    }
+
     pub fn push(&mut self, pair: &Pair<C>) {
         debug_assert_ne!(
             self.len, TUMO_LOOP,
@@ -133,6 +137,12 @@ impl PairQueue<PuyoColor> {
             tumos.push(&Pair::<PuyoColor>::new_random());
         }
         tumos
+    }
+
+    pub fn extend_randoms(&mut self, len: usize) {
+        for _ in 0..len {
+            self.push(&Pair::<PuyoColor>::new_random());
+        }
     }
 }
 
