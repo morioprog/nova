@@ -4,8 +4,13 @@ use super::Evaluator;
 
 pub(crate) fn select_best_evaluator(
     player_state_1p: &PlayerState,
-    player_state_2p: &PlayerState,
+    player_state_2p: Option<&PlayerState>,
 ) -> Evaluator {
+    let player_state_2p = match player_state_2p {
+        Some(state) => state,
+        None => return BUILD,
+    };
+
     if player_state_1p.carry_over >= 70 * 30 && player_state_2p.carry_over >= 70 * 30 {
         return ZENKESHI;
     }

@@ -6,7 +6,7 @@ use log::warn;
 use crate::{
     chain_picker::{ChainPicker, Houwa},
     decision::{Decision, DecisionWithElapsed},
-    evaluator::{select_best_evaluator, BUILD},
+    evaluator::select_best_evaluator,
     searcher::{RandomSearcher, Searcher},
 };
 
@@ -40,11 +40,7 @@ impl Nova {
     ) -> Decision {
         // TODO: OpeningMatcher
 
-        let evaluator = if player_state_2p.is_some() {
-            select_best_evaluator(player_state_1p, player_state_2p.unwrap())
-        } else {
-            BUILD
-        };
+        let evaluator = select_best_evaluator(player_state_1p, player_state_2p);
         let (build_decision, chain_decisions) = RandomSearcher::search(player_state_1p, &evaluator);
 
         let houwa_decision = Houwa::pick_chain(player_state_1p, player_state_2p, &chain_decisions);
