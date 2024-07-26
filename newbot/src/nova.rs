@@ -13,10 +13,10 @@ use crate::{
 pub struct Nova;
 
 impl Nova {
-    fn think(
+    pub fn think(
         &self,
-        player_state_1p: PlayerState,
-        player_state_2p: Option<PlayerState>,
+        player_state_1p: &PlayerState,
+        player_state_2p: Option<&PlayerState>,
         think_frame: Option<u32>,
     ) -> DecisionWithElapsed {
         let start = Instant::now();
@@ -34,22 +34,20 @@ impl Nova {
 
     fn think_internal(
         &self,
-        player_state_1p: PlayerState,
-        player_state_2p: Option<PlayerState>,
+        player_state_1p: &PlayerState,
+        player_state_2p: Option<&PlayerState>,
         _think_frame: Option<u32>,
     ) -> Decision {
         // TODO: OpeningMatcher
 
         let evaluator = if player_state_2p.is_some() {
-            select_best_evaluator(&player_state_1p, &player_state_2p.as_ref().unwrap())
+            select_best_evaluator(player_state_1p, player_state_2p.unwrap())
         } else {
             BUILD
         };
-        let (build_decision, chain_decisions) =
-            RandomSearcher::search(&player_state_1p, &evaluator);
+        let (build_decision, chain_decisions) = RandomSearcher::search(player_state_1p, &evaluator);
 
-        let houwa_decision =
-            Houwa::pick_chain(&player_state_1p, player_state_2p.as_ref(), &chain_decisions);
+        let houwa_decision = Houwa::pick_chain(player_state_1p, player_state_2p, &chain_decisions);
         if houwa_decision.is_some() {
             return houwa_decision.unwrap();
         }

@@ -6,7 +6,7 @@ pub(crate) fn select_best_evaluator(
     player_state_1p: &PlayerState,
     player_state_2p: &PlayerState,
 ) -> Evaluator {
-    if player_state_1p.carry_over >= 2100 && player_state_2p.carry_over >= 2100 {
+    if player_state_1p.carry_over >= 70 * 30 && player_state_2p.carry_over >= 70 * 30 {
         return ZENKESHI;
     }
 
@@ -28,4 +28,4 @@ pub(crate) const BUILD: Evaluator = Evaluator {
 
 const HURRY: Evaluator = Evaluator::zero();
 const ZENKESHI: Evaluator = Evaluator::zero();
-const TUBUSHI: Evaluator = Evaluator::zero();
+const TSUBUSHI: Evaluator = Evaluator::zero();

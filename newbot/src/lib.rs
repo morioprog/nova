@@ -4,4 +4,5 @@ mod evaluator;
 mod nova;
 mod searcher;
 
+pub use decision::DecisionWithElapsed;
 pub use nova::Nova;
