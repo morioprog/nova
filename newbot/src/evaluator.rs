@@ -5,13 +5,15 @@ use core::{
     search::ComplementedPuyo,
 };
 
-pub(crate) use evaluators::{select_best_evaluator, BUILD};
+pub(crate) use evaluators::select_best_evaluator;
 use feature_extraction::BoardFeature;
 
 mod evaluators;
 mod feature_extraction;
 
+#[derive(Clone)]
 pub(crate) struct Evaluator {
+    pub name: &'static str,
     pub bump: i32,
     pub dent: i32,
     pub dead_cells: i32,
@@ -27,7 +29,7 @@ pub(crate) struct Evaluator {
 }
 
 impl Evaluator {
-    fn evaluate(&self, player_state: &PlayerState) -> i32 {
+    pub(crate) fn evaluate(&self, player_state: &PlayerState) -> i32 {
         debug_assert!(player_state.board.popping_puyos().is_none());
 
         if player_state.board.is_dead() {
@@ -78,6 +80,7 @@ impl Evaluator {
 
     const fn zero() -> Self {
         Self {
+            name: "noname",
             bump: 0,
             dent: 0,
             dead_cells: 0,

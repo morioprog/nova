@@ -19,6 +19,7 @@ pub(crate) fn select_best_evaluator(
 }
 
 pub(crate) const BUILD: Evaluator = Evaluator {
+    name: "build",
     bump: -348,
     dent: -152,
     dead_cells: -407,
@@ -31,6 +32,15 @@ pub(crate) const BUILD: Evaluator = Evaluator {
     score_per_k: 30,
 };
 
-const HURRY: Evaluator = Evaluator::zero();
-const ZENKESHI: Evaluator = Evaluator::zero();
-const TSUBUSHI: Evaluator = Evaluator::zero();
+const HURRY: Evaluator = Evaluator {
+    name: "hurry",
+    ..Evaluator::zero()
+};
+const ZENKESHI: Evaluator = Evaluator {
+    name: "zenkeshi",
+    ..Evaluator::zero()
+};
+const TSUBUSHI: Evaluator = Evaluator {
+    name: "tsubushi",
+    ..Evaluator::zero()
+};

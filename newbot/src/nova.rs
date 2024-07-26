@@ -4,10 +4,10 @@ use std::time::Instant;
 use log::warn;
 
 use crate::{
-    chain_picker::{ChainPicker, Houwa},
+    chain_picker::{enumerate_fireable_chains, ChainPicker, Houwa},
     decision::{Decision, DecisionWithElapsed},
     evaluator::select_best_evaluator,
-    searcher::{RandomSearcher, Searcher},
+    searcher::{BeamSearcher, Searcher},
 };
 
 pub struct Nova;
@@ -36,13 +36,11 @@ impl Nova {
         &self,
         player_state_1p: &PlayerState,
         player_state_2p: Option<&PlayerState>,
-        _think_frame: Option<u32>,
+        think_frame: Option<u32>,
     ) -> Decision {
         // TODO: OpeningMatcher
 
-        let evaluator = select_best_evaluator(player_state_1p, player_state_2p);
-        let (build_decision, chain_decisions) = RandomSearcher::search(player_state_1p, &evaluator);
-
+        let chain_decisions = enumerate_fireable_chains(player_state_1p);
         macro_rules! try_pick_chain {
             ($($chain_picker:ty),*) => {
                 $(
@@ -53,6 +51,9 @@ impl Nova {
             };
         }
         try_pick_chain!(Houwa);
+
+        let evaluator = select_best_evaluator(player_state_1p, player_state_2p);
+        let build_decision = BeamSearcher::search(player_state_1p, &evaluator, think_frame);
 
         build_decision
     }

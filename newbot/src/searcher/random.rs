@@ -8,16 +8,17 @@ use crate::{decision::Decision, evaluator::Evaluator};
 pub(crate) struct RandomSearcher;
 
 impl Searcher for RandomSearcher {
-    fn search(player_state: &PlayerState, _evaluator: &Evaluator) -> (Decision, Vec<Decision>) {
+    fn search(
+        player_state: &PlayerState,
+        _evaluator: &Evaluator,
+        _think_frame: Option<u32>,
+    ) -> Decision {
         let placement =
             Self::random_valid_placement(&player_state.board, player_state.tumos[0].is_zoro());
-        (
-            Decision {
-                placements: vec![placement],
-                ..Decision::default()
-            },
-            vec![],
-        )
+        Decision {
+            placements: vec![placement],
+            ..Decision::default()
+        }
     }
 }
 
