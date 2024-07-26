@@ -43,10 +43,16 @@ impl Nova {
         let evaluator = select_best_evaluator(player_state_1p, player_state_2p);
         let (build_decision, chain_decisions) = RandomSearcher::search(player_state_1p, &evaluator);
 
-        let houwa_decision = Houwa::pick_chain(player_state_1p, player_state_2p, &chain_decisions);
-        if houwa_decision.is_some() {
-            return houwa_decision.unwrap();
+        macro_rules! try_pick_chain {
+            ($($chain_picker:ty),*) => {
+                $(
+                    if let Some(decision) = <$chain_picker>::pick_chain(player_state_1p, player_state_2p, &chain_decisions) {
+                        return decision;
+                    }
+                )*
+            };
         }
+        try_pick_chain!(Houwa);
 
         build_decision
     }
