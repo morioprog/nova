@@ -1,0 +1,8 @@
+[package]
+name = "nova-newbot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+core = { path = "../core", package = "nova-core" }
+rand = "0.8.5"
