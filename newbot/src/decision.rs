@@ -25,4 +25,12 @@ impl Decision {
             elapsed,
         }
     }
+
+    pub fn fallback() -> Decision {
+        Decision {
+            placements: vec![Placement::new(3, 0)],
+            chain: Chain::default(),
+            logging: Some("fallback".to_owned()),
+        }
+    }
 }

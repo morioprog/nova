@@ -2,7 +2,7 @@ use core::player_state::PlayerState;
 
 use super::Evaluator;
 
-pub fn select_best_evaluator(
+pub(crate) fn select_best_evaluator(
     player_state_1p: &PlayerState,
     player_state_2p: &PlayerState,
 ) -> Evaluator {
@@ -13,7 +13,7 @@ pub fn select_best_evaluator(
     BUILD
 }
 
-const BUILD: Evaluator = Evaluator {
+pub(crate) const BUILD: Evaluator = Evaluator {
     bump: -348,
     dent: -152,
     dead_cells: -407,

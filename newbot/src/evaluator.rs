@@ -5,12 +5,13 @@ use core::{
     search::ComplementedPuyo,
 };
 
+pub(crate) use evaluators::{select_best_evaluator, BUILD};
 use feature_extraction::BoardFeature;
 
 mod evaluators;
 mod feature_extraction;
 
-struct Evaluator {
+pub(crate) struct Evaluator {
     pub bump: i32,
     pub dent: i32,
     pub dead_cells: i32,

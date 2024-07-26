@@ -4,9 +4,11 @@ mod random;
 
 use core::player_state::PlayerState;
 
-use crate::decision::Decision;
+pub(crate) use random::RandomSearcher;
 
-trait Searcher {
+use crate::{decision::Decision, evaluator::Evaluator};
+
+pub(crate) trait Searcher {
     /// Returns (the best decision, list of chains that could be fired)
-    fn search(&self, player_state: PlayerState) -> (Decision, Vec<Decision>);
+    fn search(player_state: &PlayerState, evaluator: &Evaluator) -> (Decision, Vec<Decision>);
 }

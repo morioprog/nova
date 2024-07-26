@@ -3,12 +3,12 @@ use core::player_state::PlayerState;
 use super::ChainPicker;
 use crate::decision::Decision;
 
-struct Houwa;
+pub(crate) struct Houwa;
 
 impl ChainPicker for Houwa {
     fn pick_chain(
         _player_state_1p: &PlayerState,
-        _player_state_2p: &PlayerState,
+        _player_state_2p: Option<&PlayerState>,
         chains: &[Decision],
     ) -> Option<Decision> {
         // TODO: refine
