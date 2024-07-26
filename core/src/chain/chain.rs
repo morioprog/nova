@@ -18,3 +18,11 @@ impl Chain {
         self.2
     }
 }
+
+impl std::ops::Add for Chain {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
+    }
+}
