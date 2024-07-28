@@ -3,7 +3,7 @@ pub(crate) mod strategies;
 
 use core::player_state::PlayerState;
 
-pub(crate) use enumerate::enumerate_fireable_chains;
+pub use enumerate::enumerate_fireable_chains;
 
 use crate::decision::Decision;
 

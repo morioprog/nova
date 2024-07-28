@@ -7,3 +7,4 @@ edition = "2021"
 core = { path = "../core", package = "nova-core" }
 rand = "0.8.5"
 log = "0.4.21"
+itertools = "0.13.0"
