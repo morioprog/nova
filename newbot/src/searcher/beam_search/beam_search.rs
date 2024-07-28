@@ -13,7 +13,7 @@ use crate::{
 /// Number of threads available.
 const PARALLEL: usize = 20;
 
-pub(crate) struct BeamSearcher;
+pub struct BeamSearcher;
 
 impl Searcher for BeamSearcher {
     fn search(
@@ -62,14 +62,14 @@ impl Searcher for BeamSearcher {
 fn get_best_depth_and_width(think_frame: Option<u32>) -> (usize, usize) {
     if let Some(frame) = think_frame {
         if frame <= 2 {
-            (20, 20)
+            (7, 40)
         } else if frame <= 8 {
-            (30, 60)
+            (14, 80)
         } else {
-            (40, 140)
+            (27, 120)
         }
     } else {
-        (30, 60)
+        (14, 80)
     }
 }
 
@@ -123,7 +123,9 @@ fn search_single_thread(
         }
 
         sort_by_eval(&mut nxt_nodes);
-        nxt_nodes.resize(width, Node::default());
+        if nxt_nodes.len() > width {
+            nxt_nodes.resize(width, Node::default());
+        }
         nodes = nxt_nodes.clone();
     }
 
@@ -134,5 +136,45 @@ fn search_single_thread(
             "eval: {:>6}\ntactics: {:>7}\na",
             nodes[0].eval_score, evaluator.name
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use core::{
+        board::Board,
+        color::PuyoColor::*,
+        tumo::{Tumo, Tumos},
+    };
+
+    use super::*;
+    use crate::evaluator::BUILD;
+
+    #[test]
+    fn search_returns_valid_placement() {
+        let boards: [Board; 8] = [
+            [0, 0, 0, 0, 0, 0].into(),
+            [11, 11, 11, 11, 11, 11].into(),
+            [12, 12, 11, 12, 12, 12].into(),
+            [11, 11, 11, 13, 11, 11].into(),
+            [11, 13, 11, 11, 11, 11].into(),
+            [11, 12, 11, 13, 11, 11].into(),
+            [11, 13, 11, 12, 11, 11].into(),
+            [11, 13, 11, 13, 11, 11].into(),
+        ];
+        let tumos_pattern: [Tumos; 2] = [
+            Tumos::new(&vec![Tumo::new(RED, GREEN)]),
+            Tumos::new(&vec![Tumo::new_zoro(BLUE)]),
+        ];
+
+        for board in &boards {
+            for tumos in &tumos_pattern {
+                let player_state = PlayerState::new(board.clone(), tumos.clone(), 0, 0, 0, 0, 0, 0);
+                let decision = BeamSearcher::search(&player_state, &BUILD, Some(2));
+
+                assert!(!decision.placements.is_empty());
+                assert!(board.is_placeable(decision.placements.first().unwrap()));
+            }
+        }
     }
 }

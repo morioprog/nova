@@ -5,11 +5,11 @@ mod random;
 use core::player_state::PlayerState;
 
 #[allow(unused_imports)]
-pub(crate) use {beam_search::BeamSearcher, random::RandomSearcher};
+pub use {beam_search::BeamSearcher, random::RandomSearcher};
 
 use crate::{decision::Decision, evaluator::Evaluator};
 
-pub(crate) trait Searcher {
+pub trait Searcher {
     /// Returns (the best decision, list of chains that could be fired)
     fn search(
         player_state: &PlayerState,
