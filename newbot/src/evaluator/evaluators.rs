@@ -18,7 +18,7 @@ pub(crate) fn select_best_evaluator(
     BUILD
 }
 
-pub(crate) const BUILD: Evaluator = Evaluator {
+pub const BUILD: Evaluator = Evaluator {
     name: "build",
     bump: -348,
     dent: -152,

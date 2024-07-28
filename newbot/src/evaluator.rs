@@ -6,13 +6,14 @@ use core::{
 };
 
 pub(crate) use evaluators::select_best_evaluator;
+pub use evaluators::BUILD;
 use feature_extraction::BoardFeature;
 
 mod evaluators;
 mod feature_extraction;
 
 #[derive(Clone)]
-pub(crate) struct Evaluator {
+pub struct Evaluator {
     pub name: &'static str,
     pub bump: i32,
     pub dent: i32,
@@ -29,7 +30,7 @@ pub(crate) struct Evaluator {
 }
 
 impl Evaluator {
-    pub(crate) fn evaluate(&self, player_state: &PlayerState) -> i32 {
+    pub fn evaluate(&self, player_state: &PlayerState) -> i32 {
         debug_assert!(player_state.board.popping_puyos().is_none());
 
         if player_state.board.is_dead() {
