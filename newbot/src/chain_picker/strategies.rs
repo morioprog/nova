@@ -1,3 +1,3 @@
 mod houwa;
 
-pub(crate) use houwa::Houwa;
+pub use houwa::Houwa;

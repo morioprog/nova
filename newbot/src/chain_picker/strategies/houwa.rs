@@ -2,7 +2,7 @@ use core::player_state::PlayerState;
 
 use crate::{chain_picker::ChainPicker, decision::Decision};
 
-pub(crate) struct Houwa;
+pub struct Houwa;
 
 impl ChainPicker for Houwa {
     fn pick_chain(
