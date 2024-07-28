@@ -4,8 +4,8 @@ mod random;
 
 use core::player_state::PlayerState;
 
-pub(crate) use beam_search::BeamSearcher;
-pub(crate) use random::RandomSearcher;
+#[allow(unused_imports)]
+pub(crate) use {beam_search::BeamSearcher, random::RandomSearcher};
 
 use crate::{decision::Decision, evaluator::Evaluator};
 

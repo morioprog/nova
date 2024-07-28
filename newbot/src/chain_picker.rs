@@ -1,8 +1,9 @@
-mod houwa;
+mod enumerate;
+pub(crate) mod strategies;
 
 use core::player_state::PlayerState;
 
-pub(crate) use houwa::Houwa;
+pub(crate) use enumerate::enumerate_fireable_chains;
 
 use crate::decision::Decision;
 
@@ -12,8 +13,4 @@ pub(crate) trait ChainPicker {
         player_state_2p: Option<&PlayerState>,
         chains: &[Decision],
     ) -> Option<Decision>;
-}
-
-pub(crate) fn enumerate_fireable_chains(player_state: &PlayerState) -> Vec<Decision> {
-    todo!()
 }

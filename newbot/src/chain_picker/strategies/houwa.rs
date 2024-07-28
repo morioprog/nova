@@ -1,7 +1,6 @@
 use core::player_state::PlayerState;
 
-use super::ChainPicker;
-use crate::decision::Decision;
+use crate::{chain_picker::ChainPicker, decision::Decision};
 
 pub(crate) struct Houwa;
 
