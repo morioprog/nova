@@ -18,6 +18,7 @@ impl Node {
     ) -> Self {
         let mut new_player_state = player_state.clone();
         let chain = new_player_state.board.simulate();
+        new_player_state.frame += chain.frame();
 
         Self {
             eval_score: evaluator.evaluate(&new_player_state),
