@@ -131,8 +131,8 @@ fn search_single_thread(
         placements: nodes[0].placements.clone(),
         chain: nodes[0].chain.clone(),
         logging: Some(format!(
-            "eval ({:>7}): {:>5}",
-            evaluator.name, nodes[0].eval_score
+            "eval: {:>6}\ntactics: {:>7}\na",
+            nodes[0].eval_score, evaluator.name
         )),
     }
 }

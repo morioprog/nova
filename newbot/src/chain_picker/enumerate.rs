@@ -99,7 +99,7 @@ impl DecisionWithFrame {
             Decision {
                 placements: node.1.clone(),
                 chain: node.2.clone(),
-                logging: Some(format!("fire: {}", node.2.score())),
+                logging: Some(format!("fire: {:>6}", node.2.score())),
             },
             node.0.frame,
         )
