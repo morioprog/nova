@@ -1,4 +1,4 @@
-use core::{placement::Placement, player_state::PlayerState};
+use core::{chain::Chain, placement::Placement, player_state::PlayerState};
 use std::{sync::mpsc, thread};
 
 use crate::{
@@ -105,6 +105,10 @@ fn search_single_thread(
                 }
 
                 let nxt = node.place_tumo(tumo, placement, &evaluator);
+                if node.player_state.board.is_dead() {
+                    continue;
+                }
+
                 if nxt_sorted && nxt_nodes[width - 1].eval_score > nxt.eval_score {
                     continue;
                 }
@@ -129,11 +133,19 @@ fn search_single_thread(
         nodes = nxt_nodes.clone();
     }
 
+    if nodes.is_empty() {
+        return Decision {
+            placements: vec![Placement::new(3, 0)],
+            chain: Chain::default(),
+            logging: Some("muri...".to_owned()),
+        };
+    }
+
     Decision {
         placements: nodes[0].placements.clone(),
         chain: nodes[0].chain.clone(),
         logging: Some(format!(
-            "eval: {:>6}\ntactics: {:>7}\na",
+            "eval: {:>6}\ntactics: {:>7}",
             nodes[0].eval_score, evaluator.name
         )),
     }

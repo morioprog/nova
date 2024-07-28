@@ -32,6 +32,10 @@ pub fn enumerate_fireable_chains(player_state: &PlayerState) -> Vec<Decision> {
                 }
 
                 let (nxt_node, fired) = node.place_tumo(&tumo, placement);
+                if node.0.board.is_dead() {
+                    continue;
+                }
+
                 nxt_nodes.push(nxt_node.clone());
                 if fired {
                     candidate_chains.push(nxt_node.into());
