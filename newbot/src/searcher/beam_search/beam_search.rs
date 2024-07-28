@@ -133,7 +133,7 @@ fn search_single_thread(
         nodes = nxt_nodes.clone();
     }
 
-    if nodes.is_empty() {
+    if nodes.is_empty() || nodes[0].placements.is_empty() {
         return Decision {
             placements: vec![Placement::new(3, 0)],
             chain: Chain::default(),
