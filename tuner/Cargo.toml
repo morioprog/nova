@@ -7,3 +7,4 @@ edition = "2021"
 bot = { path = "../bot", package = "nova-bot" }
 simulator = { path = "../simulator", package = "nova-simulator" }
 rand = "0.8.5"
+itertools = "0.13.0"
