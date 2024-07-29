@@ -19,7 +19,7 @@ impl Node {
         Self::from_detailed_player_state(&player_state.clone().into(), placements, evaluator)
     }
 
-    pub fn from_detailed_player_state(
+    fn from_detailed_player_state(
         player_state: &DetailedPlayerState,
         placements: &[Placement],
         evaluator: &Evaluator,

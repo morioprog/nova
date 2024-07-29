@@ -9,10 +9,10 @@ pub struct DetailedPlayerState {
     pub frame_by_chigiri: u32,
 }
 
-impl Into<DetailedPlayerState> for PlayerState {
-    fn into(self) -> DetailedPlayerState {
-        DetailedPlayerState {
-            player_state: self,
+impl From<PlayerState> for DetailedPlayerState {
+    fn from(value: PlayerState) -> Self {
+        Self {
+            player_state: value,
             frame_since_control_start: 0,
             frame_by_chain: 0,
             frame_by_chigiri: 0,

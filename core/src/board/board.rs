@@ -233,7 +233,7 @@ impl Board {
         }
 
         self.unescape_above_13th_row(&escaped);
-        Chain::new(chain as u32, score * 10, frame)
+        Chain::new(chain, score * 10, frame)
     }
 
     pub fn place_puyo(&mut self, x: usize, c: PuyoColor) {
