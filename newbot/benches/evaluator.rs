@@ -9,10 +9,10 @@ use core::{
     tumo::{Tumo, Tumos},
 };
 
-use nova_newbot::evaluator::BUILD;
+use nova_newbot::{evaluator::BUILD, DetailedPlayerState};
 use test::Bencher;
 
-// 2,452 ns/iter (+/- 247)
+// 2,607 ns/iter (+/- 133)
 // TODO: measure again once added major features
 #[bench]
 fn bench_evaluate(b: &mut Bencher) {
@@ -27,7 +27,7 @@ fn bench_evaluate(b: &mut Bencher) {
         Tumo::new(BLUE, YELLOW),
         Tumo::new(YELLOW, GREEN),
     ]);
-    let player_state = PlayerState::new(board, tumos, 1, 2, 3, 4, 5, 0);
+    let player_state: DetailedPlayerState = PlayerState::new(board, tumos, 1, 2, 3, 4, 5, 0).into();
 
     b.iter(|| test::black_box(BUILD.clone().evaluate(&player_state.clone())));
 }

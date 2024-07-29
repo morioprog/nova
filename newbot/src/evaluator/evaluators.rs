@@ -28,6 +28,10 @@ pub const BUILD: Evaluator = Evaluator {
     // U-shape
     non_u_shape: -53,
     non_u_shape_sq: -64,
+    // Frames
+    frame: -2,
+    frame_by_chain: -20,
+    frame_by_chigiri: -20,
     // Detected chains
     score_per_k: 30,
 };

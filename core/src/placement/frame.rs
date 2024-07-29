@@ -33,6 +33,10 @@ pub const fn chigiri_frames(y_diff: usize) -> u32 {
 impl Board {
     /// Not considering "wall jumping".
     pub fn basic_place_frames(&self, placement: &Placement) -> u32 {
+        self.move_frames(placement) + self.chigiri_frames(placement)
+    }
+
+    pub fn move_frames(&self, placement: &Placement) -> u32 {
         let heights = self.height_array();
         let axis_height = heights[placement.axis_x()];
         let child_height = heights[placement.child_x()];
@@ -43,11 +47,17 @@ impl Board {
             1 | 3 => axis_height.max(child_height) + 1,
             _ => unreachable!(),
         };
+
+        horizontal_move_frames(placement.axis_x()) + vertical_move_frames(y)
+    }
+
+    pub fn chigiri_frames(&self, placement: &Placement) -> u32 {
+        let heights = self.height_array();
+        let axis_height = heights[placement.axis_x()];
+        let child_height = heights[placement.child_x()];
+
         let y_diff = axis_height.abs_diff(child_height);
 
-        let move_frames = horizontal_move_frames(placement.axis_x()) + vertical_move_frames(y);
-        let chigiri_frames = chigiri_frames(y_diff);
-
-        move_frames + chigiri_frames
+        chigiri_frames(y_diff)
     }
 }

@@ -1,13 +1,14 @@
 use core::{
     board::{Board, HEIGHT, WIDTH},
     chain::Chain,
-    player_state::PlayerState,
     search::ComplementedPuyo,
 };
 
 pub(crate) use evaluators::select_best_evaluator;
 pub use evaluators::BUILD;
 use feature_extraction::BoardFeature;
+
+use crate::DetailedPlayerState;
 
 mod evaluators;
 mod feature_extraction;
@@ -23,6 +24,10 @@ pub struct Evaluator {
     // U-shape
     pub non_u_shape: i32,
     pub non_u_shape_sq: i32,
+    // Frames
+    pub frame: i32,
+    pub frame_by_chain: i32,
+    pub frame_by_chigiri: i32,
     // Detected chains
     /// Sum of scores of detected chains divided by 1024.
     /// (Using 1024 instead of 1000 (<=> "k") since the division can be done by a simple bit shift.)
@@ -30,7 +35,7 @@ pub struct Evaluator {
 }
 
 impl Evaluator {
-    pub fn evaluate(&self, player_state: &PlayerState) -> i32 {
+    pub fn evaluate(&self, player_state: &DetailedPlayerState) -> i32 {
         debug_assert!(player_state.board.popping_puyos().is_none());
 
         if player_state.board.is_dead() {
@@ -66,6 +71,10 @@ impl Evaluator {
         score += (self.non_u_shape * non_u_shape) >> r_shift;
         score += (self.non_u_shape_sq * non_u_shape_sq) >> r_shift;
 
+        score += self.frame * player_state.frame_since_control_start as i32;
+        score += self.frame_by_chain * player_state.frame_by_chain as i32;
+        score += self.frame_by_chigiri * player_state.frame_by_chigiri as i32;
+
         let mut score_per_k = 0;
         player_state.board.detect_potential_chain(
             2,
@@ -90,6 +99,10 @@ impl Evaluator {
             // U-shape
             non_u_shape: 0,
             non_u_shape_sq: 0,
+            // Frames
+            frame: 0,
+            frame_by_chain: 0,
+            frame_by_chigiri: 0,
             // Detected chains
             score_per_k: 0,
         }
