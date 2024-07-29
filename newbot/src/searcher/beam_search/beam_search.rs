@@ -69,7 +69,9 @@ fn get_best_depth_and_width(think_frame: Option<u32>) -> (usize, usize) {
             (7, 40)
         }
     } else {
-        (14, 80)
+        // (14, 80)
+        // TODO: impl simple DFS instead
+        (2, 22 * 22)
     }
 }
 
@@ -81,7 +83,9 @@ fn search_single_thread(
 ) -> Decision {
     // monte carlo
     let visible = player_state.tumos.available_tumo_len();
-    player_state.tumos.extend_randoms(depth - visible);
+    if depth > visible {
+        player_state.tumos.extend_randoms(depth - visible);
+    }
 
     let mut nodes = vec![Node::from_player_state(&player_state, &[], &evaluator)];
     let mut nxt_nodes = Vec::<Node>::with_capacity(width * 2);

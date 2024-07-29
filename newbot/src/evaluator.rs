@@ -13,7 +13,7 @@ use crate::DetailedPlayerState;
 mod evaluators;
 mod feature_extraction;
 
-#[derive(Clone)]
+#[derive(Clone, Copy, Debug)]
 pub struct Evaluator {
     pub name: &'static str,
     pub bump: i32,

@@ -1,11 +1,9 @@
-use bot::bots::get_bot;
+use newbot::Nova;
 use nova_simulator::simulate_1p;
 
 fn main() {
-    let bot_name = "DfsBot";
-    let bot = get_bot(bot_name);
-
-    let simulate_result = simulate_1p(bot);
+    let nova = Nova::default();
+    let simulate_result = simulate_1p(nova);
 
     let think_ms_avg = simulate_result
         .decisions

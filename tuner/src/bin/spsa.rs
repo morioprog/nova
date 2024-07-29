@@ -1,9 +1,9 @@
-use eval::NORMAL_EVALUATOR;
+use newbot::evaluator::BUILD;
 use nova_tuner::simulate::select_best_evaluator;
 use rand::Rng;
 
 fn main() {
-    let mut eval = *NORMAL_EVALUATOR;
+    let mut eval = BUILD;
 
     let constrain_positive = |x: i32| x.max(0);
     let constrain_negative = |x: i32| x.min(0);
@@ -16,9 +16,14 @@ fn main() {
         (&mut eval.conn_3 as *mut i32, 1, 10),
         // (&mut eval.non_u_shape as *mut i32, -1, 10),
         // (&mut eval.non_u_shape_sq as *mut i32, -1, 10),
+        // (&mut eval.frame as *mut i32, -1, 10),
+        // (&mut eval.frame_by_chain as *mut i32, -1, 10),
+        // (&mut eval.frame_by_chigiri as *mut i32, -1, 10),
     ];
 
-    for _ in 0..100 {
+    for i in 1..=100 {
+        println!("> SPSA iteration {}", i);
+
         for ptr in ptrs {
             let delta = rand::thread_rng().gen_range(2..=ptr.2);
 
@@ -47,5 +52,6 @@ fn main() {
         }
 
         dbg!(eval);
+        println!();
     }
 }

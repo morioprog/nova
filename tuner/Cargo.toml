@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 eval = { path = "../eval", package = "nova-eval" }
-bot = { path = "../bot", package = "nova-bot" }
+newbot = { path = "../newbot", package = "nova-newbot" }
 simulator = { path = "../simulator", package = "nova-simulator" }
 rand = "0.8.5"

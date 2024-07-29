@@ -1,10 +1,10 @@
 use core::{player_state::PlayerState, tumo::Tumos};
 
-use bot::Bot;
+use newbot::Nova;
 
 use crate::simulate_result::simulate_1p_result::Simulate1PResult;
 
-pub fn simulate_1p(bot: Box<dyn Bot>) -> Simulate1PResult {
+pub fn simulate_1p(nova: Nova) -> Simulate1PResult {
     // TODO: pass visible as parameter
     let visible = 3;
 
@@ -13,7 +13,7 @@ pub fn simulate_1p(bot: Box<dyn Bot>) -> Simulate1PResult {
 
     // TODO: pass 50 as parameter
     for _ in 0..50 {
-        let decision = bot.think_1p(&player_state.limit_visible_tumos(visible), None);
+        let decision = nova.think(&player_state.limit_visible_tumos(visible), None, None);
 
         let Some(placement) = decision.placements.first() else {
             panic!("Bot returned empty placement!")

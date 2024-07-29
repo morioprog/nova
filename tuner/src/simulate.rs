@@ -3,8 +3,7 @@ use std::{
     thread,
 };
 
-use bot::bots::DfsBot;
-use eval::Evaluator;
+use newbot::{evaluator::Evaluator, Nova};
 use simulator::simulate_1p;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
@@ -68,9 +67,7 @@ pub fn select_best_evaluator(evaluators: Vec<Evaluator>) -> Evaluator {
             for _ in 0..10 {
                 // TODO: use the same tumos for all evaluators
                 for (i, evaluator) in evaluators.iter().enumerate() {
-                    let result = simulate_1p(Box::new(DfsBot {
-                        evaluator: *evaluator,
-                    }));
+                    let result = simulate_1p(Nova::with_evaluator(*evaluator));
                     sim_v[i] = sim_v[i]
                         + SimulateResult {
                             // TODO: pass 70000 as parameter

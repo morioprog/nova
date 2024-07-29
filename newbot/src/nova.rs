@@ -6,13 +6,22 @@ use log::warn;
 use crate::{
     chain_picker::{enumerate_fireable_chains, strategies::*, ChainPicker},
     decision::{Decision, DecisionWithElapsed},
-    evaluator::select_best_evaluator,
+    evaluator::{select_best_evaluator, Evaluator},
     searcher::{BeamSearcher, Searcher},
 };
 
-pub struct Nova;
+#[derive(Default)]
+pub struct Nova {
+    custom_evaluator: Option<Evaluator>,
+}
 
 impl Nova {
+    pub fn with_evaluator(evaluator: Evaluator) -> Self {
+        Self {
+            custom_evaluator: Some(evaluator),
+        }
+    }
+
     pub fn think(
         &self,
         player_state_1p: &PlayerState,
@@ -52,7 +61,10 @@ impl Nova {
         }
         try_pick_chain!(Houwa);
 
-        let evaluator = select_best_evaluator(player_state_1p, player_state_2p);
+        let evaluator = self
+            .custom_evaluator
+            .clone()
+            .unwrap_or(select_best_evaluator(player_state_1p, player_state_2p));
         let build_decision = BeamSearcher::search(player_state_1p, &evaluator, think_frame);
 
         build_decision
