@@ -9,7 +9,7 @@ use core::{
     tumo::{Tumo, Tumos},
 };
 
-use nova_newbot::{evaluator::BUILD, DetailedPlayerState};
+use nova_bot::{evaluator::BUILD, DetailedPlayerState};
 use test::Bencher;
 
 // 2,607 ns/iter (+/- 133)

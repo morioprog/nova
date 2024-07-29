@@ -1,4 +1,4 @@
-use newbot::Nova;
+use bot::Nova;
 use nova_simulator::simulate_1p;
 
 fn main() {

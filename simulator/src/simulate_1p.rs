@@ -1,6 +1,6 @@
 use core::{player_state::PlayerState, tumo::Tumos};
 
-use newbot::Nova;
+use bot::Nova;
 
 use crate::simulate_result::simulate_1p_result::Simulate1PResult;
 

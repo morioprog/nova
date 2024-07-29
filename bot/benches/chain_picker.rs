@@ -9,7 +9,7 @@ use core::{
     tumo::{Tumo, Tumos},
 };
 
-use nova_newbot::chain_picker::{enumerate_fireable_chains, strategies::*, ChainPicker};
+use nova_bot::chain_picker::{enumerate_fireable_chains, strategies::*, ChainPicker};
 use test::Bencher;
 
 // 5,842,780 ns/iter (+/- 725,681)

@@ -1,6 +1,6 @@
 use core::{board::Board, placement::Placement, puyop::construct_sim1p_url, tumo::Tumos};
 
-use newbot::DecisionWithElapsed;
+use bot::DecisionWithElapsed;
 
 pub struct Simulate1PResult {
     pub score: u32,

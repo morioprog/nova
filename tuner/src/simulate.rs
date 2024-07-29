@@ -3,7 +3,7 @@ use std::{
     thread,
 };
 
-use newbot::{evaluator::Evaluator, Nova};
+use bot::{evaluator::Evaluator, Nova};
 use simulator::simulate_1p;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]

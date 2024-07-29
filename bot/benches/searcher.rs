@@ -7,7 +7,7 @@ use core::{
     tumo::{Tumo, Tumos},
 };
 
-use nova_newbot::{
+use nova_bot::{
     evaluator::BUILD,
     searcher::{BeamSearcher, Searcher},
 };

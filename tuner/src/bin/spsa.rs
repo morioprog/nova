@@ -1,4 +1,4 @@
-use newbot::evaluator::BUILD;
+use bot::evaluator::BUILD;
 use nova_tuner::simulate::select_best_evaluator;
 use rand::Rng;
 

@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 core = { path = "../core", package = "nova-core" }
-newbot = { path = "../newbot", package = "nova-newbot" }
+bot = { path = "../bot", package = "nova-bot" }
