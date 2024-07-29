@@ -3,7 +3,7 @@ use nova_simulator::simulate_1p;
 
 fn main() {
     let nova = Nova::default();
-    let simulate_result = simulate_1p(nova);
+    let simulate_result = simulate_1p(nova, None);
 
     let think_ms_avg = simulate_result
         .decisions

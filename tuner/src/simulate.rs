@@ -1,3 +1,4 @@
+use core::tumo::Tumos;
 use std::{
     sync::{Arc, Mutex},
     thread,
@@ -55,7 +56,7 @@ pub fn select_best_evaluator(evaluators: Vec<Evaluator>) -> Evaluator {
     let simulate_results = Arc::new(Mutex::new(vec![SimulateResult::default(); n]));
 
     let mut handles = vec![];
-    // TODO: pass 20 as parameter
+    // TODO: pass 20 as parameter (threads)
     for _ in 0..20 {
         let all_v = Arc::clone(&simulate_results);
         let evaluators = evaluators.clone();
@@ -63,11 +64,11 @@ pub fn select_best_evaluator(evaluators: Vec<Evaluator>) -> Evaluator {
         handles.push(thread::spawn(move || {
             let mut sim_v = vec![SimulateResult::default(); n];
 
-            // TODO: pass 10 as parameter
-            for _ in 0..10 {
-                // TODO: use the same tumos for all evaluators
+            // TODO: pass 10 as parameter (number of tumo patterns)
+            for _ in 0..30 {
+                let tumos = Tumos::new_random();
                 for (i, evaluator) in evaluators.iter().enumerate() {
-                    let result = simulate_1p(Nova::with_evaluator(*evaluator));
+                    let result = simulate_1p(Nova::with_evaluator(*evaluator), Some(tumos.clone()));
                     sim_v[i] = sim_v[i]
                         + SimulateResult {
                             // TODO: pass 70000 as parameter

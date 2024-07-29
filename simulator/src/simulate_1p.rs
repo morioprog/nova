@@ -4,11 +4,11 @@ use bot::Nova;
 
 use crate::simulate_result::simulate_1p_result::Simulate1PResult;
 
-pub fn simulate_1p(nova: Nova) -> Simulate1PResult {
+pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>) -> Simulate1PResult {
     // TODO: pass visible as parameter
     let visible = 3;
 
-    let mut player_state = PlayerState::initial_state(Tumos::new_random());
+    let mut player_state = PlayerState::initial_state(tumos.unwrap_or(Tumos::new_random()));
     let mut decisions = vec![];
 
     // TODO: pass 50 as parameter
