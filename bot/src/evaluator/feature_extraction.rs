@@ -1,6 +1,6 @@
 use core::{
     board::{Board, BoardOps, HEIGHT as H, WIDTH as W},
-    color::PuyoColor::*,
+    color::PuyoColor::{self, *},
 };
 
 pub(super) trait BoardFeature {
@@ -9,6 +9,7 @@ pub(super) trait BoardFeature {
     fn dead_cells(&self) -> i32;
     fn connectivity(&self) -> (i32, i32);
     fn non_u_shape(&self) -> (i32, i32);
+    fn ojama_count(&self) -> i32;
 }
 
 impl BoardFeature for Board {
@@ -106,6 +107,10 @@ impl BoardFeature for Board {
         }
 
         (sum, sq_sum)
+    }
+
+    fn ojama_count(&self) -> i32 {
+        self.bits_with_color(PuyoColor::OJAMA).popcount() as i32
     }
 }
 

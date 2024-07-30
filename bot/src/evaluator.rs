@@ -1,5 +1,5 @@
 use core::{
-    board::{Board, HEIGHT, WIDTH},
+    board::{Board, WIDTH},
     chain::Chain,
     search::ComplementedPuyo,
 };
@@ -21,6 +21,7 @@ pub struct Evaluator {
     pub dead_cells: i32,
     pub conn_2: i32,
     pub conn_3: i32,
+    pub ojama: i32,
     // U-shape
     pub non_u_shape: i32,
     pub non_u_shape_sq: i32,
@@ -42,9 +43,6 @@ impl Evaluator {
             return i32::MIN;
         }
 
-        let heights = player_state.board.height_array();
-        let avg_height = heights[1..=WIDTH].iter().sum::<usize>() / WIDTH;
-
         let mut score = 0i32;
 
         for x in 1..=WIDTH {
@@ -60,16 +58,11 @@ impl Evaluator {
         score += self.conn_2 * conn_2;
         score += self.conn_3 * conn_3;
 
+        score += self.ojama * player_state.board.ojama_count();
+
         let (non_u_shape, non_u_shape_sq) = player_state.board.non_u_shape();
-        let r_shift = if avg_height <= 3 {
-            3
-        } else if avg_height >= HEIGHT - 2 {
-            1
-        } else {
-            0
-        };
-        score += (self.non_u_shape * non_u_shape) >> r_shift;
-        score += (self.non_u_shape_sq * non_u_shape_sq) >> r_shift;
+        score += self.non_u_shape * non_u_shape;
+        score += self.non_u_shape_sq * non_u_shape_sq;
 
         score += self.frame * player_state.frame_since_control_start as i32;
         score += self.frame_by_chain * player_state.frame_by_chain as i32;
@@ -96,6 +89,7 @@ impl Evaluator {
             dead_cells: 0,
             conn_2: 0,
             conn_3: 0,
+            ojama: 0,
             // U-shape
             non_u_shape: 0,
             non_u_shape_sq: 0,

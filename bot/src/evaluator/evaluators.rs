@@ -20,20 +20,21 @@ pub(crate) fn select_best_evaluator(
 
 pub const BUILD: Evaluator = Evaluator {
     name: "build",
-    bump: -348,
-    dent: -152,
-    dead_cells: -407,
-    conn_2: 21,
-    conn_3: 63,
+    bump: -50,
+    dent: -50,
+    dead_cells: -20,
+    conn_2: 50,
+    conn_3: 20,
+    ojama: -300,
     // U-shape
-    non_u_shape: -53,
-    non_u_shape_sq: -64,
+    non_u_shape: -50,
+    non_u_shape_sq: 0,
     // Frames
-    frame: -2,
-    frame_by_chain: -20,
-    frame_by_chigiri: -20,
+    frame: -1,
+    frame_by_chain: -5,
+    frame_by_chigiri: -3,
     // Detected chains
-    score_per_k: 30,
+    score_per_k: 100,
 };
 
 const HURRY: Evaluator = Evaluator {

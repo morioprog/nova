@@ -64,15 +64,15 @@ pub fn select_best_evaluator(evaluators: Vec<Evaluator>) -> Evaluator {
         handles.push(thread::spawn(move || {
             let mut sim_v = vec![SimulateResult::default(); n];
 
-            // TODO: pass 10 as parameter (number of tumo patterns)
-            for _ in 0..30 {
+            // TODO: pass 50 as parameter (number of tumo patterns)
+            for _ in 0..50 {
                 let tumos = Tumos::new_random();
                 for (i, evaluator) in evaluators.iter().enumerate() {
                     let result = simulate_1p(Nova::with_evaluator(*evaluator), Some(tumos.clone()));
                     sim_v[i] = sim_v[i]
                         + SimulateResult {
-                            // TODO: pass 70000 as parameter
-                            chain_success: if result.score >= 70000 { 1 } else { 0 },
+                            // TODO: pass 50000 as parameter
+                            chain_success: if result.score >= 50000 { 1 } else { 0 },
                             score: result.score,
                             tumos: result.decisions.len() as u32,
                         }
