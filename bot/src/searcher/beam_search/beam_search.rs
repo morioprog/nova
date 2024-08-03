@@ -186,7 +186,7 @@ mod tests {
         for board in &boards {
             for tumos in &tumos_pattern {
                 let player_state = PlayerState::new(board.clone(), tumos.clone(), 0, 0, 0, 0, 0, 0);
-                let decision = BeamSearcher::search(&player_state, &BUILD, Some(2));
+                let decision = BeamSearcher::search(&player_state, &BUILD, None);
 
                 assert!(!decision.placements.is_empty());
                 assert!(board.is_placeable(decision.placements.first().unwrap()));

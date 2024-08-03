@@ -17,6 +17,10 @@ impl ComplementedPuyo {
         self.sum += cmpl;
         self.clone()
     }
+
+    pub fn get(&self, x: usize) -> u32 {
+        self.cols[x].popcount()
+    }
 }
 
 #[cfg(test)]

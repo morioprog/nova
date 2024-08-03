@@ -30,9 +30,11 @@ pub struct Evaluator {
     pub frame_by_chain: i32,
     pub frame_by_chigiri: i32,
     // Detected chains
+    pub detected_need: i32,
+    pub detected_keys: i32,
     /// Sum of scores of detected chains divided by 1024.
     /// (Using 1024 instead of 1000 (<=> "k") since the division can be done by a simple bit shift.)
-    pub score_per_k: i32,
+    pub detected_score_per_k: i32,
 }
 
 impl Evaluator {
@@ -68,15 +70,27 @@ impl Evaluator {
         score += self.frame_by_chain * player_state.frame_by_chain as i32;
         score += self.frame_by_chigiri * player_state.frame_by_chigiri as i32;
 
-        let mut score_per_k = 0;
+        let mut detected_score = i32::MIN;
         player_state.board.detect_potential_chain(
-            2,
-            |_board: Board, _cp: ComplementedPuyo, chain: Chain| {
+            3,
+            6,
+            |_board: Board, fire_x: usize, cp: ComplementedPuyo, chain: Chain| {
+                let mut detected_score_tmp = 0;
+
+                let need = cp.get(fire_x) as i32;
+                detected_score_tmp += self.detected_need * need;
+                let keys = cp.sum() as i32 - need;
+                detected_score_tmp += self.detected_keys * keys;
+
                 // devide by 1024
-                score_per_k += chain.score() >> 10;
+                detected_score_tmp += self.detected_score_per_k * (chain.score() >> 10) as i32;
+
+                detected_score = detected_score.max(detected_score_tmp);
             },
         );
-        score += self.score_per_k * (score_per_k as i32);
+        if detected_score > i32::MIN {
+            score += detected_score;
+        }
 
         score
     }
@@ -98,7 +112,9 @@ impl Evaluator {
             frame_by_chain: 0,
             frame_by_chigiri: 0,
             // Detected chains
-            score_per_k: 0,
+            detected_need: 0,
+            detected_keys: 0,
+            detected_score_per_k: 0,
         }
     }
 }

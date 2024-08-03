@@ -34,7 +34,9 @@ pub const BUILD: Evaluator = Evaluator {
     frame_by_chain: -5,
     frame_by_chigiri: -3,
     // Detected chains
-    score_per_k: 100,
+    detected_need: -25,
+    detected_keys: -200,
+    detected_score_per_k: 625,
 };
 
 const HURRY: Evaluator = Evaluator {
