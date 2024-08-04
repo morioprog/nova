@@ -9,14 +9,11 @@ use core::{
     tumo::{Tumo, Tumos},
 };
 
-use nova_bot::{evaluator::BUILD, DetailedPlayerState};
+use nova_bot::{DetailedPlayerState, Nova};
 use test::Bencher;
 
-// max_depth == 1:  3,284 ns/iter (+/- 214)
-// max_depth == 6: 14,421 ns/iter (+/- 880)
-// TODO: measure again once added major features
 #[bench]
-fn bench_evaluate_1(b: &mut Bencher) {
+fn bench_think_1(b: &mut Bencher) {
     let board = Board::from(concat!(
         "G.....", // 4
         "GG..Y.", // 3
@@ -30,13 +27,14 @@ fn bench_evaluate_1(b: &mut Bencher) {
     ]);
     let player_state: DetailedPlayerState = PlayerState::new(board, tumos, 1, 2, 3, 4, 5, 0).into();
 
-    b.iter(|| test::black_box(BUILD.clone().evaluate(&player_state.clone())));
+    b.iter(|| test::black_box(Nova::default().think(&player_state.clone(), None, None)));
 }
 
-// max_depth = 1:  3,443 ns/iter (+/- 51)
-// max_depth = 6: 36,332 ns/iter (+/- 1,265)
+// (2,  22):  28,357,450 ns/iter (+/-   780,026)
+// (3,  88): 119,264,260 ns/iter (+/- 2,351,079)
+// (3, 306): 343,072,440 ns/iter (+/- 3,420,919)
 #[bench]
-fn bench_evaluate_2(b: &mut Bencher) {
+fn bench_think_2(b: &mut Bencher) {
     let board = Board::from(concat!(
         "....Y.", // 7
         "....BG", // 6
@@ -53,5 +51,5 @@ fn bench_evaluate_2(b: &mut Bencher) {
     ]);
     let player_state: DetailedPlayerState = PlayerState::new(board, tumos, 1, 2, 3, 4, 5, 0).into();
 
-    b.iter(|| test::black_box(BUILD.clone().evaluate(&player_state.clone())));
+    b.iter(|| test::black_box(Nova::default().think(&player_state.clone(), None, Some(1_306_003))));
 }

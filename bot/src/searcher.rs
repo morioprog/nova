@@ -5,7 +5,10 @@ mod random;
 use core::player_state::PlayerState;
 
 #[allow(unused_imports)]
-pub use {beam_search::BeamSearcher, random::RandomSearcher};
+pub use {
+    beam_search::{BeamSearcher, MonteCarloBeamSearcher},
+    random::RandomSearcher,
+};
 
 use crate::{decision::Decision, evaluator::Evaluator};
 
