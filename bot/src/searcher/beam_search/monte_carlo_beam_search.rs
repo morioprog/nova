@@ -111,7 +111,7 @@ fn search_single_thread(
                 }
 
                 let nxt = node.place_tumo(tumo, placement, &evaluator);
-                if node.player_state.board.is_dead() {
+                if nxt.player_state.board.is_dead() {
                     continue;
                 }
 

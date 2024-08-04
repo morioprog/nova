@@ -7,7 +7,7 @@ use crate::{
     chain_picker::{enumerate_fireable_chains, strategies::*, ChainPicker},
     decision::{Decision, DecisionWithElapsed},
     evaluator::{select_best_evaluator, Evaluator},
-    searcher::{BeamSearcher, Searcher},
+    searcher::{ChokudaiSearcher, Searcher},
 };
 
 #[derive(Default)]
@@ -77,7 +77,7 @@ impl Nova {
             .custom_evaluator
             .clone()
             .unwrap_or(select_best_evaluator(player_state_1p, player_state_2p));
-        let build_decision = BeamSearcher::search(
+        let build_decision = ChokudaiSearcher::search(
             player_state_1p,
             &evaluator,
             self.debug_think_frame(think_frame),

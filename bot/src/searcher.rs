@@ -6,7 +6,7 @@ use core::player_state::PlayerState;
 
 #[allow(unused_imports)]
 pub use {
-    beam_search::{BeamSearcher, MonteCarloBeamSearcher},
+    beam_search::{BeamSearcher, ChokudaiSearcher, MonteCarloBeamSearcher},
     random::RandomSearcher,
 };
 

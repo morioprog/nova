@@ -1,4 +1,5 @@
 use core::{chain::Chain, placement::Placement, player_state::PlayerState};
+use std::time::Instant;
 
 use crate::{
     decision::Decision,
@@ -9,22 +10,23 @@ use crate::{
     },
 };
 
-pub struct BeamSearcher;
+/// First perform BFS up to depth=2, then continue the search until 84% of the think_frame time has passed.
+pub struct ChokudaiSearcher;
 
-impl Searcher for BeamSearcher {
+const MIN_DEPTH: usize = 2;
+
+impl Searcher for ChokudaiSearcher {
     fn search(
         player_state: &PlayerState,
         evaluator: &Evaluator,
         think_frame: Option<u32>,
     ) -> Decision {
-        let (depth, width) = get_best_depth_and_width(think_frame);
-        let depth = depth.min(player_state.tumos.available_tumo_len());
+        let start = Instant::now();
 
         let mut nodes = vec![Node::from_player_state(player_state, &[], evaluator)];
-        let mut nxt_nodes = Vec::<Node>::with_capacity(width * 2);
-        let mut nxt_sorted;
+        let mut nxt_nodes = Vec::<Node>::with_capacity(22 * 22);
 
-        for d in 0..depth {
+        for d in 0..MIN_DEPTH {
             let tumo = &player_state.tumos[d];
             let placements_itr = if tumo.is_zoro() {
                 Placement::placements_zoro().iter()
@@ -33,7 +35,6 @@ impl Searcher for BeamSearcher {
             };
 
             nxt_nodes.clear();
-            nxt_sorted = false;
 
             for placement in placements_itr {
                 for node in &nodes {
@@ -42,20 +43,11 @@ impl Searcher for BeamSearcher {
                     }
 
                     let nxt = node.place_tumo(tumo, placement, &evaluator);
-                    if nxt.player_state.board.is_dead() {
+                    if node.player_state.board.is_dead() {
                         continue;
                     }
 
-                    if nxt_sorted && nxt_nodes[width - 1].eval_score > nxt.eval_score {
-                        continue;
-                    }
                     nxt_nodes.push(nxt);
-
-                    if nxt_nodes.len() >= width * 2 {
-                        sort_by_eval(&mut nxt_nodes);
-                        nxt_nodes.resize(width, Node::default());
-                        nxt_sorted = true;
-                    }
                 }
             }
 
@@ -64,9 +56,6 @@ impl Searcher for BeamSearcher {
             }
 
             sort_by_eval(&mut nxt_nodes);
-            if nxt_nodes.len() > width {
-                nxt_nodes.resize(width, Node::default());
-            }
             nodes = nxt_nodes.clone();
         }
 
@@ -78,32 +67,59 @@ impl Searcher for BeamSearcher {
             };
         }
 
+        let mut best_node: Option<Node> = None;
+
+        if player_state.tumos.len() >= 3 {
+            let tumo = &player_state.tumos[2];
+            let placements_itr = if tumo.is_zoro() {
+                Placement::placements_zoro().iter()
+            } else {
+                Placement::placements_non_zoro().iter()
+            };
+
+            if let Some(frame) = think_frame {
+                let think_frame_ms_84_perc = frame as u128 * (840 / 60);
+                for placement in placements_itr.as_ref() {
+                    for node in &nodes {
+                        if start.elapsed().as_millis() > think_frame_ms_84_perc {
+                            break;
+                        }
+
+                        if !node.player_state.board.is_placeable(placement) {
+                            continue;
+                        }
+
+                        let nxt = node.place_tumo(tumo, placement, &evaluator);
+                        if nxt.player_state.board.is_dead() {
+                            continue;
+                        }
+
+                        if let Some(ref best) = best_node {
+                            if best.eval_score < nxt.eval_score {
+                                best_node = Some(nxt);
+                            }
+                        } else {
+                            best_node = Some(nxt);
+                        }
+                    }
+                }
+            }
+        }
+
+        let best_node = if let Some(best) = best_node {
+            best
+        } else {
+            nodes[0].clone()
+        };
+
         Decision {
-            placements: nodes[0].placements.clone(),
-            chain: nodes[0].chain.clone(),
+            placements: best_node.placements.clone(),
+            chain: best_node.chain.clone(),
             logging: Some(format!(
                 "eval: {:>6}\ntactics: {:>7}",
-                nodes[0].eval_score, evaluator.name
+                best_node.eval_score, evaluator.name
             )),
         }
-    }
-}
-
-fn get_best_depth_and_width(think_frame: Option<u32>) -> (usize, usize) {
-    if let Some(frame) = think_frame {
-        // TODO: for debug mode, super ad-hoc!!
-        if frame >= 1000000 {
-            (frame as usize % 1000, (frame as usize / 1000) % 1000)
-        } else if frame >= 24 {
-            (3, 121)
-        } else if frame >= 8 {
-            (3, 22)
-        } else {
-            (2, 22)
-        }
-    } else {
-        // TODO: impl simple DFS instead
-        (2, 22)
     }
 }
 
@@ -131,14 +147,14 @@ mod tests {
             [11, 13, 11, 13, 11, 11].into(),
         ];
         let tumos_pattern: [Tumos; 2] = [
-            Tumos::new(&vec![Tumo::new(RED, GREEN)]),
-            Tumos::new(&vec![Tumo::new_zoro(BLUE)]),
+            Tumos::new(&vec![Tumo::new(RED, GREEN), Tumo::new(BLUE, GREEN)]),
+            Tumos::new(&vec![Tumo::new_zoro(BLUE), Tumo::new_zoro(RED)]),
         ];
 
         for board in &boards {
             for tumos in &tumos_pattern {
                 let player_state = PlayerState::new(board.clone(), tumos.clone(), 0, 0, 0, 0, 0, 0);
-                let decision = BeamSearcher::search(&player_state, &BUILD, None);
+                let decision = ChokudaiSearcher::search(&player_state, &BUILD, None);
 
                 assert!(!decision.placements.is_empty());
                 assert!(board.is_placeable(decision.placements.first().unwrap()));
