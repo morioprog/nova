@@ -77,7 +77,7 @@ impl Nova {
             .custom_evaluator
             .clone()
             .unwrap_or(select_best_evaluator(player_state_1p, player_state_2p));
-        let build_decision = ChokudaiSearcher::search(
+        let build_decision = MonteCarloBeamSearcher::search(
             player_state_1p,
             &evaluator,
             self.debug_think_frame(think_frame),

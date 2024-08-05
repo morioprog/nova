@@ -65,15 +65,14 @@ fn get_best_depth_and_width(think_frame: Option<u32>) -> (usize, usize) {
         if frame >= 1000000 {
             (frame as usize % 1000, (frame as usize / 1000) % 1000)
         } else if frame >= 24 {
-            (27, 120)
+            (30, 100)
         } else if frame >= 8 {
-            (14, 80)
+            (14, 44)
         } else {
-            (2, 22 * 22)
+            (5, 22)
         }
     } else {
-        // TODO: impl simple DFS instead
-        (2, 22 * 22)
+        (14, 44)
     }
 }
 

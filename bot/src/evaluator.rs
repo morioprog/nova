@@ -73,7 +73,7 @@ impl Evaluator {
         let mut detected_score = i32::MIN;
         player_state.board.detect_potential_chain(
             3,
-            6,
+            1,
             |_board: Board, fire_x: usize, cp: ComplementedPuyo, chain: Chain| {
                 let mut detected_score_tmp = 0;
 

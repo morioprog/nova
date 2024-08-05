@@ -51,5 +51,5 @@ fn bench_think_2(b: &mut Bencher) {
     ]);
     let player_state: DetailedPlayerState = PlayerState::new(board, tumos, 1, 2, 3, 4, 5, 0).into();
 
-    b.iter(|| test::black_box(Nova::default().think(&player_state.clone(), None, Some(1_306_003))));
+    b.iter(|| test::black_box(Nova::default().think(&player_state.clone(), None, None)));
 }
