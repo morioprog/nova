@@ -16,11 +16,17 @@ impl Board {
         Callback: FnMut(Self, usize, ComplementedPuyo, Chain),
     {
         let initial_heights = self.height_array();
-        // (Board, depth, ComplementedPuyo, fire x, banned x)
-        let mut stack: Vec<(Board, u8, ComplementedPuyo, usize, u8)> =
-            vec![(self.clone(), 1, ComplementedPuyo::default(), usize::MAX, 0)];
+        // (Board, depth, ComplementedPuyo, Chain, fire x, banned x)
+        let mut stack: Vec<(Board, u8, ComplementedPuyo, Chain, usize, u8)> = vec![(
+            self.clone(),
+            1,
+            ComplementedPuyo::default(),
+            Chain::default(),
+            usize::MAX,
+            0,
+        )];
 
-        while let Some((board, depth, cp, fire_x, mut banned)) = stack.pop() {
+        while let Some((board, depth, cp, chain, fire_x, mut banned)) = stack.pop() {
             let heights = board.height_array();
             let max_cmpl = if depth == 1 { max_cmpl } else { 2 };
 
@@ -77,19 +83,25 @@ impl Board {
                             break;
                         }
 
-                        let chain = new_board.simulate();
-                        if chain.chain() == 0 {
+                        let new_chain = new_board.simulate_from_middle(chain.chain() + 1);
+                        if new_chain.score() == 0 {
                             continue;
                         }
+                        let new_chain = Chain::new(
+                            new_chain.chain(),
+                            chain.score() + new_chain.score(),
+                            chain.frame() + new_chain.frame(),
+                        );
 
                         let fire_x = if depth == 1 { x } else { fire_x };
                         let new_cp = cp.clone().add(x, cmpl, *c);
-                        callback(new_board.clone(), fire_x, new_cp.clone(), chain);
+                        callback(new_board.clone(), fire_x, new_cp.clone(), new_chain.clone());
                         if depth < max_depth {
                             stack.push((
                                 new_board.clone(),
                                 depth + 1,
                                 new_cp,
+                                new_chain,
                                 fire_x,
                                 if depth == 1 {
                                     // Ban the initial fire x.
