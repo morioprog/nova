@@ -69,8 +69,8 @@ impl Searcher for ChokudaiSearcher {
 
         let mut best_node: Option<Node> = None;
 
-        if player_state.tumos.len() >= 3 {
-            let tumo = &player_state.tumos[2];
+        if player_state.tumos.len() >= MIN_DEPTH + 1 {
+            let tumo = &player_state.tumos[MIN_DEPTH];
             let placements_itr = if tumo.is_zoro() {
                 Placement::placements_zoro().iter()
             } else {

@@ -7,7 +7,7 @@ use crate::{
     chain_picker::{enumerate_fireable_chains, strategies::*, ChainPicker},
     decision::{Decision, DecisionWithElapsed},
     evaluator::{select_best_evaluator, Evaluator},
-    searcher::{ChokudaiSearcher, Searcher},
+    searcher::*,
 };
 
 #[derive(Default)]

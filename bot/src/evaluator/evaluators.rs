@@ -20,11 +20,11 @@ pub(crate) fn select_best_evaluator(
 
 pub const BUILD: Evaluator = Evaluator {
     name: "build",
-    bump: -50,
-    dent: -50,
-    dead_cells: -20,
-    conn_2: 50,
-    conn_3: 20,
+    bump: -30,
+    dent: -30,
+    dead_cells: -23,
+    conn_2: 20,
+    conn_3: 111,
     ojama: -300,
     // U-shape
     non_u_shape: -50,
@@ -35,10 +35,11 @@ pub const BUILD: Evaluator = Evaluator {
     frame_by_chigiri: -3,
     // Detected chains
     detected_need: -25,
-    detected_keys: -200,
-    detected_score_per_k: 625,
+    detected_keys: -250,
+    detected_score_per_k: 50,
 };
 
+#[allow(dead_code)]
 const HURRY: Evaluator = Evaluator {
     name: "hurry",
     ..Evaluator::zero()
@@ -47,6 +48,7 @@ const ZENKESHI: Evaluator = Evaluator {
     name: "zenkeshi",
     ..Evaluator::zero()
 };
+#[allow(dead_code)]
 const TSUBUSHI: Evaluator = Evaluator {
     name: "tsubushi",
     ..Evaluator::zero()
