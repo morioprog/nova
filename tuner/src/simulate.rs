@@ -72,7 +72,7 @@ pub fn select_best_evaluator(evaluators: Vec<Evaluator>) -> Evaluator {
                     sim_v[i] = sim_v[i]
                         + SimulateResult {
                             // TODO: pass 50000 as parameter
-                            chain_success: if result.score >= 50000 { 1 } else { 0 },
+                            chain_success: if result.score >= 80000 { 1 } else { 0 },
                             score: result.score,
                             tumos: result.decisions.len() as u32,
                         }

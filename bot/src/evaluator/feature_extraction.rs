@@ -7,7 +7,7 @@ pub(super) trait BoardFeature {
     fn bump(&self, x: usize) -> i32;
     fn dent(&self, x: usize) -> i32;
     fn dead_cells(&self) -> i32;
-    fn connectivity(&self) -> (i32, i32);
+    fn connectivity(&self) -> (i32, i32, i32);
     fn non_u_shape(&self) -> (i32, i32);
     fn ojama_count(&self) -> i32;
 }
@@ -60,8 +60,9 @@ impl BoardFeature for Board {
         cells as i32
     }
 
-    fn connectivity(&self) -> (i32, i32) {
-        let mut conn_2 = 0;
+    fn connectivity(&self) -> (i32, i32, i32) {
+        let mut conn_2_v = 0;
+        let mut conn_2_h = 0;
         let mut conn_3 = 0;
 
         for color in [RED, GREEN, BLUE, YELLOW] {
@@ -75,17 +76,14 @@ impl BoardFeature for Board {
             let (ud_and, ud_or) = (u & d, u | d);
             let (lr_and, lr_or) = (l & r, l | r);
 
-            conn_2 += u.popcount() as i32;
-            conn_2 += l.popcount() as i32;
+            conn_2_v += u.popcount() as i32;
+            conn_2_h += l.popcount() as i32;
 
             let conn_3_board = ud_and | lr_and | (ud_or & lr_or);
             conn_3 += conn_3_board.popcount() as i32;
         }
 
-        // conn_3 consists of two conn_2s
-        conn_2 -= conn_3 * 2;
-
-        (conn_2, conn_3)
+        (conn_2_v, conn_2_h, conn_3)
     }
 
     fn non_u_shape(&self) -> (i32, i32) {
@@ -159,7 +157,7 @@ mod tests {
             "YGGGBB", // 2
             "YRRRGG", // 1
         ));
-        assert_eq!(board.connectivity(), (3, 4));
+        assert_eq!(board.connectivity(), (2, 9, 4));
 
         let board = Board::from(concat!(
             ".YYG.R", // 5
@@ -168,7 +166,7 @@ mod tests {
             "YRGGBB", // 2
             "YRYYYG", // 1
         ));
-        assert_eq!(board.connectivity(), (4, 5));
+        assert_eq!(board.connectivity(), (6, 8, 5));
     }
 
     // TODO: add test for non-u-shape

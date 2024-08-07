@@ -72,7 +72,7 @@ fn get_best_depth_and_width(think_frame: Option<u32>) -> (usize, usize) {
             (5, 22)
         }
     } else {
-        (14, 44)
+        (6, 22)
     }
 }
 

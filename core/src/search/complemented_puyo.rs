@@ -18,8 +18,8 @@ impl ComplementedPuyo {
         self.clone()
     }
 
-    pub fn get(&self, x: usize) -> u32 {
-        self.cols[x].popcount()
+    pub fn get(&self, x: usize) -> u16 {
+        self.cols[x].sum()
     }
 }
 

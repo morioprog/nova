@@ -19,7 +19,8 @@ pub struct Evaluator {
     pub bump: i32,
     pub dent: i32,
     pub dead_cells: i32,
-    pub conn_2: i32,
+    pub conn_2_v: i32,
+    pub conn_2_h: i32,
     pub conn_3: i32,
     pub ojama: i32,
     // U-shape
@@ -56,8 +57,9 @@ impl Evaluator {
 
         score += self.dead_cells * player_state.board.dead_cells();
 
-        let (conn_2, conn_3) = player_state.board.connectivity();
-        score += self.conn_2 * conn_2;
+        let (conn_2_v, conn_2_h, conn_3) = player_state.board.connectivity();
+        score += self.conn_2_v * conn_2_v;
+        score += self.conn_2_h * conn_2_h;
         score += self.conn_3 * conn_3;
 
         score += self.ojama * player_state.board.ojama_count();
@@ -101,7 +103,8 @@ impl Evaluator {
             bump: 0,
             dent: 0,
             dead_cells: 0,
-            conn_2: 0,
+            conn_2_v: 0,
+            conn_2_h: 0,
             conn_3: 0,
             ojama: 0,
             // U-shape

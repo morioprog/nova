@@ -10,12 +10,14 @@ fn main() {
     let constrain_positive = |x: i32| x.max(0);
     let constrain_negative = |x: i32| x.min(0);
 
+    // TODO: create macro to make this simpler?
     #[rustfmt::skip]
     let ptrs = [
-        // ("bump", &mut eval.bump as *mut i32, -1, 20),
-        // ("dent", &mut eval.dent as *mut i32, -1, 20),
-        ("dead_cells", &mut eval.dead_cells as *mut i32, -1, 10),
-        // ("conn_2", &mut eval.conn_2 as *mut i32, 1, 10),
+        ("bump", &mut eval.bump as *mut i32, -1, 10),
+        ("dent", &mut eval.dent as *mut i32, -1, 10),
+        // ("dead_cells", &mut eval.dead_cells as *mut i32, -1, 10),
+        // ("conn_2_v", &mut eval.conn_2_v as *mut i32, 1, 10),
+        ("conn_2_h", &mut eval.conn_2_h as *mut i32, 1, 10),
         // ("conn_3", &mut eval.conn_3 as *mut i32, 1, 10),
         // ("non_u_shape", &mut eval.non_u_shape as *mut i32, -1, 10),
         // ("non_u_shape_sq", &mut eval.non_u_shape_sq as *mut i32, -1, 10),
@@ -23,8 +25,8 @@ fn main() {
         // ("frame_by_chain", &mut eval.frame_by_chain as *mut i32, -1, 10),
         // ("frame_by_chigiri", &mut eval.frame_by_chigiri as *mut i32, -1, 10),
         // ("detected_need", &mut eval.detected_need as *mut i32, -1, 10),
-        // ("detected_keys", &mut eval.detected_keys as *mut i32, -1, 10),
-        // ("detected_score_per_k", &mut eval.detected_score_per_k as *mut i32, 1, 20),
+        // ("detected_keys", &mut eval.detected_keys as *mut i32, -1, 15),
+        // ("detected_score_per_k", &mut eval.detected_score_per_k as *mut i32, 1, 15),
     ];
 
     let initial_values: Vec<(&str, i32)> =

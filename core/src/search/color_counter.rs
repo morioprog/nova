@@ -17,8 +17,11 @@ impl ColorCounter {
         (self.0 >> Self::color_to_shift(c)) & 0b1111
     }
 
-    pub fn popcount(&self) -> u32 {
-        self.0.count_ones()
+    pub fn sum(&self) -> u16 {
+        self.get(PuyoColor::RED)
+            + self.get(PuyoColor::GREEN)
+            + self.get(PuyoColor::BLUE)
+            + self.get(PuyoColor::YELLOW)
     }
 
     fn color_to_shift(c: PuyoColor) -> u8 {

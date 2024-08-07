@@ -15,6 +15,6 @@ impl ChainPicker for Houwa {
             .iter()
             .max_by(|a, b| a.chain.score().cmp(&b.chain.score()))
             .cloned()
-            .filter(|d| d.chain.score() >= 50000)
+            .filter(|d| d.chain.score() >= 80000)
     }
 }

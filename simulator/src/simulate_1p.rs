@@ -29,7 +29,7 @@ pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>) -> Simulate1PResult {
         let chain = player_state.board.simulate();
         player_state.score += chain.score();
         // TODO: pass 70000 as parameter
-        if chain.score() >= 70000 {
+        if chain.score() >= 80000 {
             break;
         }
 
