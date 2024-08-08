@@ -4,7 +4,7 @@ use bot::Nova;
 
 use crate::simulate_result::simulate_1p_result::Simulate1PResult;
 
-pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>) -> Simulate1PResult {
+pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>, think_frame: Option<u32>) -> Simulate1PResult {
     // TODO: pass visible as parameter
     let visible = 3;
 
@@ -13,7 +13,11 @@ pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>) -> Simulate1PResult {
 
     // TODO: pass 50 as parameter
     for _ in 0..40 {
-        let decision = nova.think(&player_state.limit_visible_tumos(visible), None, None);
+        let decision = nova.think(
+            &player_state.limit_visible_tumos(visible),
+            None,
+            think_frame,
+        );
 
         let Some(placement) = decision.placements.first() else {
             panic!("Bot returned empty placement!")

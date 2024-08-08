@@ -13,7 +13,7 @@ fn main() {
     let mut think_ms_avg = 0.0;
 
     for sim in 1..=SIMULATE_N {
-        let simulate_result = simulate_1p(Nova::default(), None);
+        let simulate_result = simulate_1p(Nova::default(), None, Some(2));
         think_ms_avg += simulate_result
             .decisions
             .iter()

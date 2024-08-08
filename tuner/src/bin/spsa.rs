@@ -1,74 +1,85 @@
 use bot::evaluator::*;
 use itertools::izip;
-use nova_tuner::simulate::select_best_evaluator;
+use nova_tuner::simulate::select_best_evaluator_overrider;
 use rand::Rng;
 
-// NOTE: use BeamSearcher in Nova when running SPSA
+macro_rules! features {
+    [$([$sign:tt, $delta_max:literal, $feat:ident]),* $(,)?] => {
+        vec![$(
+            (
+                stringify!($feat),
+                $delta_max,
+                |mut eval: Evaluator, delta: i32| {
+                    eval.$feat = match stringify!($sign) {
+                        "+" => (eval.$feat + delta).max(0),
+                        "-" => (eval.$feat + delta).min(0),
+                        _ => unreachable!(),
+                    };
+                    eval
+                },
+                |eval: &Evaluator| eval.$feat,
+            ),
+        )*]
+    };
+}
+
 fn main() {
+    // Evaluator to tune
     let mut eval = BUILD;
 
-    let constrain_positive = |x: i32| x.max(0);
-    let constrain_negative = |x: i32| x.min(0);
-
-    // TODO: create macro to make this simpler?
-    #[rustfmt::skip]
-    let ptrs = [
-        // ("bump", &mut eval.bump as *mut i32, -1, 10),
-        // ("dent", &mut eval.dent as *mut i32, -1, 10),
-        // ("dead_cells", &mut eval.dead_cells as *mut i32, -1, 10),
-        ("conn_2_v", &mut eval.conn_2_v as *mut i32, 1, 10),
-        ("conn_2_h", &mut eval.conn_2_h as *mut i32, 1, 10),
-        ("conn_3", &mut eval.conn_3 as *mut i32, 1, 10),
-        // ("non_u_shape", &mut eval.non_u_shape as *mut i32, -1, 10),
-        // ("non_u_shape_sq", &mut eval.non_u_shape_sq as *mut i32, -1, 10),
-        // ("frame", &mut eval.frame as *mut i32, -1, 10),
-        // ("frame_by_chain", &mut eval.frame_by_chain as *mut i32, -1, 10),
-        // ("frame_by_chigiri", &mut eval.frame_by_chigiri as *mut i32, -1, 10),
-        // ("detected_need", &mut eval.detected_need as *mut i32, -1, 10),
-        // ("detected_keys", &mut eval.detected_keys as *mut i32, -1, 15),
-        // ("detected_score_per_k", &mut eval.detected_score_per_k as *mut i32, 1, 15),
+    let targets: Vec<(
+        &str,
+        i32,
+        fn(Evaluator, i32) -> Evaluator,
+        fn(&Evaluator) -> i32,
+    )> = features![
+        // [-, 10, bump],
+        // [-, 10, dent],
+        // [-, 10, dead_cells],
+        [+, 10, conn_2_h],
+        [+, 10, conn_2_v],
+        [+, 10, conn_3],
+        // [-, 10, non_u_shape],
+        // [-, 10, non_u_shape_sq],
+        // [-, 10, frame],
+        // [-, 10, frame_by_chain],
+        // [-, 10, frame_by_chigiri],
+        // [-, 10, detected_need],
+        // [-, 10, detected_keys],
+        // [-, 10, detected_score_per_k],
     ];
 
-    let initial_values: Vec<(&str, i32)> =
-        ptrs.iter().map(|ptr| (ptr.0, unsafe { *ptr.1 })).collect();
+    let initial_values: Vec<(&str, i32)> = targets
+        .iter()
+        .map(|target| (target.0, target.3(&eval)))
+        .collect();
+    let max_feat_len = initial_values.iter().map(|t| t.0.len()).max().unwrap();
 
     for i in 1..=100 {
         println!("> SPSA iteration {}", i);
-        let before_values: Vec<i32> = ptrs.iter().map(|ptr| unsafe { *ptr.1 }).collect();
+        let before_values: Vec<i32> = targets.iter().map(|target| target.3(&eval)).collect();
 
-        for ptr in ptrs {
-            let delta = rand::thread_rng().gen_range(2..=ptr.3);
+        for (_, delta_max, tweaker, _) in &targets {
+            let delta = rand::thread_rng().gen_range(2..=*delta_max);
 
             let w_org = eval.clone();
+            let w_pos = tweaker(eval, delta);
+            let w_neg = tweaker(eval, -delta);
 
-            let w_pos = unsafe {
-                match ptr.2 {
-                    1 => *ptr.1 = constrain_positive(*ptr.1 + delta),
-                    -1 => *ptr.1 = constrain_negative(*ptr.1 + delta),
-                    _ => unreachable!(),
-                }
-                eval.clone()
-            };
+            let o_org: EvaluatorOverrider = (eval.name, w_org);
+            let o_pos: EvaluatorOverrider = (eval.name, w_pos);
+            let o_neg: EvaluatorOverrider = (eval.name, w_neg);
 
-            eval = w_org;
-            let w_neg = unsafe {
-                match ptr.2 {
-                    1 => *ptr.1 = constrain_positive(*ptr.1 - delta),
-                    -1 => *ptr.1 = constrain_negative(*ptr.1 - delta),
-                    _ => unreachable!(),
-                }
-                eval.clone()
-            };
-
-            eval = select_best_evaluator(vec![w_org, w_pos, w_neg]);
+            let best_o = select_best_evaluator_overrider(vec![o_org, o_pos, o_neg]);
+            eval = best_o.1;
         }
 
-        let after_values: Vec<i32> = ptrs.iter().map(|ptr| unsafe { *ptr.1 }).collect();
+        let after_values: Vec<i32> = targets.iter().map(|target| target.3(&eval)).collect();
         for ((feature_name, initial_value), before_value, after_value) in
             izip!(&initial_values, &before_values, &after_values)
         {
             println!(
-                "- {:>20}: {:>4} ({:>4} against prev, {:>4} against init)",
+                "- {:>max_feat_len$}: {:>4} ({:>4} against prev, {:>4} against init)",
                 feature_name,
                 after_value,
                 prettier_diff(after_value - before_value),

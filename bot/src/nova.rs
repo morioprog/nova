@@ -1,4 +1,4 @@
-use core::{board::WIDTH, player_state::PlayerState};
+use core::player_state::PlayerState;
 use std::time::Instant;
 
 use log::warn;
@@ -6,19 +6,19 @@ use log::warn;
 use crate::{
     chain_picker::{enumerate_fireable_chains, strategies::*, ChainPicker},
     decision::{Decision, DecisionWithElapsed},
-    evaluator::{select_best_evaluator, Evaluator, BUILD_MIDGAME},
+    evaluator::{select_best_evaluator, EvaluatorOverrider},
     searcher::*,
 };
 
 #[derive(Default)]
 pub struct Nova {
-    custom_evaluator: Option<Evaluator>,
+    evaluator_overrider: Option<EvaluatorOverrider>,
 }
 
 impl Nova {
-    pub fn with_evaluator(evaluator: Evaluator) -> Self {
+    pub fn with_evaluator_overrider(overrider: EvaluatorOverrider) -> Self {
         Self {
-            custom_evaluator: Some(evaluator),
+            evaluator_overrider: Some(overrider),
         }
     }
 
@@ -61,17 +61,11 @@ impl Nova {
         }
         try_pick_chain!(Houwa);
 
-        let mut evaluator = self
-            .custom_evaluator
-            .clone()
-            .unwrap_or(select_best_evaluator(player_state_1p, player_state_2p));
-        // TODO
-        if player_state_1p.board.height_array()[1..=WIDTH]
-            .iter()
-            .sum::<usize>()
-            >= 30
-        {
-            evaluator = BUILD_MIDGAME;
+        let mut evaluator = select_best_evaluator(player_state_1p, player_state_2p);
+        if let Some((expr_name, expr_evaluator)) = self.evaluator_overrider {
+            if evaluator.name == expr_name {
+                evaluator = expr_evaluator;
+            }
         }
         let build_decision =
             MonteCarloBeamSearcher::search(player_state_1p, &evaluator, think_frame);

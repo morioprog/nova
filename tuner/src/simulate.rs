@@ -4,7 +4,7 @@ use std::{
     thread,
 };
 
-use bot::{evaluator::Evaluator, Nova};
+use bot::{evaluator::EvaluatorOverrider, Nova};
 use simulator::simulate_1p;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
@@ -51,15 +51,15 @@ impl Ord for SimulateResult {
     }
 }
 
-pub fn select_best_evaluator(evaluators: Vec<Evaluator>) -> Evaluator {
-    let n = evaluators.len();
+pub fn select_best_evaluator_overrider(overriders: Vec<EvaluatorOverrider>) -> EvaluatorOverrider {
+    let n = overriders.len();
     let simulate_results = Arc::new(Mutex::new(vec![SimulateResult::default(); n]));
 
     let mut handles = vec![];
     // TODO: pass 20 as parameter (threads)
     for _ in 0..20 {
         let all_v = Arc::clone(&simulate_results);
-        let evaluators = evaluators.clone();
+        let overriders = overriders.clone();
 
         handles.push(thread::spawn(move || {
             let mut sim_v = vec![SimulateResult::default(); n];
@@ -67,8 +67,12 @@ pub fn select_best_evaluator(evaluators: Vec<Evaluator>) -> Evaluator {
             // TODO: pass 100 as parameter (number of tumo patterns)
             for _ in 0..100 {
                 let tumos = Tumos::new_random();
-                for (i, evaluator) in evaluators.iter().enumerate() {
-                    let result = simulate_1p(Nova::with_evaluator(*evaluator), Some(tumos.clone()));
+                for (i, overrider) in overriders.iter().enumerate() {
+                    let result = simulate_1p(
+                        Nova::with_evaluator_overrider(*overrider),
+                        Some(tumos.clone()),
+                        None,
+                    );
                     sim_v[i] = sim_v[i]
                         + SimulateResult {
                             // TODO: pass 50000 as parameter
@@ -92,7 +96,7 @@ pub fn select_best_evaluator(evaluators: Vec<Evaluator>) -> Evaluator {
         handle.join().unwrap();
     }
 
-    *evaluators
+    *overriders
         .iter()
         .enumerate()
         .max_by_key(|(index, _)| (*simulate_results.lock().unwrap()).get(*index).cloned())

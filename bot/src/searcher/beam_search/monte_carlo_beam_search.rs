@@ -66,10 +66,11 @@ fn get_best_depth_and_width(think_frame: Option<u32>) -> (usize, usize) {
         } else if frame >= 8 {
             (14, 44)
         } else {
-            (5, 22)
+            (6, 22)
         }
     } else {
-        (6, 22)
+        // For SPSA
+        (3, 22)
     }
 }
 

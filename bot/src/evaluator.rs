@@ -12,6 +12,9 @@ use crate::DetailedPlayerState;
 mod evaluators;
 mod feature_extraction;
 
+// For SPSA
+pub type EvaluatorOverrider = (&'static str, Evaluator);
+
 #[derive(Clone, Copy, Debug)]
 pub struct Evaluator {
     pub name: &'static str,
