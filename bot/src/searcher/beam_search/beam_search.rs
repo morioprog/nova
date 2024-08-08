@@ -91,10 +91,7 @@ impl Searcher for BeamSearcher {
 
 fn get_best_depth_and_width(think_frame: Option<u32>) -> (usize, usize) {
     if let Some(frame) = think_frame {
-        // TODO: for debug mode, super ad-hoc!!
-        if frame >= 1000000 {
-            (frame as usize % 1000, (frame as usize / 1000) % 1000)
-        } else if frame >= 24 {
+        if frame >= 24 {
             (3, 121)
         } else if frame >= 8 {
             (3, 22)

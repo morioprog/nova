@@ -13,24 +13,12 @@ use crate::{
 #[derive(Default)]
 pub struct Nova {
     custom_evaluator: Option<Evaluator>,
-    custom_beam_search_depth: Option<usize>,
-    custom_beam_search_width: Option<usize>,
 }
 
 impl Nova {
     pub fn with_evaluator(evaluator: Evaluator) -> Self {
         Self {
             custom_evaluator: Some(evaluator),
-            custom_beam_search_depth: None,
-            custom_beam_search_width: None,
-        }
-    }
-
-    pub fn with_custom_params(depth: usize, width: usize) -> Self {
-        Self {
-            custom_evaluator: None,
-            custom_beam_search_depth: Some(depth),
-            custom_beam_search_width: Some(width),
         }
     }
 
@@ -85,23 +73,9 @@ impl Nova {
         {
             evaluator = BUILD_MIDGAME;
         }
-        let build_decision = MonteCarloBeamSearcher::search(
-            player_state_1p,
-            &evaluator,
-            self.debug_think_frame(think_frame),
-        );
+        let build_decision =
+            MonteCarloBeamSearcher::search(player_state_1p, &evaluator, think_frame);
 
         build_decision
-    }
-
-    // TODO: super ad-hoc!!
-    fn debug_think_frame(&self, fallback: Option<u32>) -> Option<u32> {
-        if self.custom_beam_search_depth.is_none() || self.custom_beam_search_width.is_none() {
-            fallback
-        } else {
-            let depth = self.custom_beam_search_depth.unwrap();
-            let width = self.custom_beam_search_width.unwrap();
-            Some((1000000 + width * 1000 + depth) as u32)
-        }
     }
 }
