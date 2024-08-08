@@ -12,7 +12,7 @@ pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>) -> Simulate1PResult {
     let mut decisions = vec![];
 
     // TODO: pass 50 as parameter
-    for _ in 0..50 {
+    for _ in 0..40 {
         let decision = nova.think(&player_state.limit_visible_tumos(visible), None, None);
 
         let Some(placement) = decision.placements.first() else {
@@ -20,16 +20,22 @@ pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>) -> Simulate1PResult {
         };
 
         decisions.push(decision.clone());
-        // TODO: just disregard frame?
-        player_state
+        let place_frame = player_state
             .board
             .place_tumo(&player_state.tumos[0], placement);
+        if let Some(frame) = place_frame {
+            player_state.frame += frame;
+        } else {
+            println!("unplaceable...");
+            break;
+        }
         // TODO: consider drop bonus?
 
         let chain = player_state.board.simulate();
-        player_state.score += chain.score();
+        player_state.frame += chain.frame();
         // TODO: pass 70000 as parameter
         if chain.score() >= 80000 {
+            player_state.score += chain.score(); // TODO: temporary
             break;
         }
 

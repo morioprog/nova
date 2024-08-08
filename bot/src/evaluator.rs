@@ -4,8 +4,7 @@ use core::{
     search::ComplementedPuyo,
 };
 
-pub(crate) use evaluators::select_best_evaluator;
-pub use evaluators::BUILD;
+pub use evaluators::*;
 use feature_extraction::BoardFeature;
 
 use crate::DetailedPlayerState;

@@ -1,35 +1,48 @@
-use core::player_state::PlayerState;
+use core::{board::WIDTH, player_state::PlayerState};
 
 use super::Evaluator;
 
-pub(crate) fn select_best_evaluator(
+pub fn select_best_evaluator(
     player_state_1p: &PlayerState,
     player_state_2p: Option<&PlayerState>,
 ) -> Evaluator {
     let player_state_2p = match player_state_2p {
         Some(state) => state,
-        None => return BUILD,
+        None => return select_best_build_evaluator(player_state_1p),
     };
 
     if player_state_1p.carry_over >= 70 * 30 && player_state_2p.carry_over >= 70 * 30 {
         return ZENKESHI;
     }
 
-    BUILD
+    select_best_build_evaluator(player_state_1p)
+}
+
+pub fn select_best_build_evaluator(player_state: &PlayerState) -> Evaluator {
+    // TODO: refine
+    if player_state.board.height_array()[1..=WIDTH]
+        .iter()
+        .sum::<usize>()
+        >= 30
+    {
+        BUILD_MIDGAME
+    } else {
+        BUILD
+    }
 }
 
 pub const BUILD: Evaluator = Evaluator {
     name: "build",
-    bump: -16,
-    dent: -122,
-    dead_cells: -23,
-    conn_2_v: 52,
-    conn_2_h: 115,
-    conn_3: 64,
+    bump: -34,
+    dent: -119,
+    dead_cells: -20,
+    conn_2_v: 37,
+    conn_2_h: 156,
+    conn_3: 104,
     ojama: -300,
     // U-shape
     non_u_shape: -4,
-    non_u_shape_sq: -10,
+    non_u_shape_sq: -9,
     // Frames
     frame: -1,
     frame_by_chain: -5,
@@ -40,17 +53,27 @@ pub const BUILD: Evaluator = Evaluator {
     detected_score_per_k: 112,
 };
 
+pub const BUILD_MIDGAME: Evaluator = Evaluator {
+    name: "build_mid",
+    bump: -70,
+    dent: -265,
+    non_u_shape_sq: -53,
+    conn_2_v: 83,
+    conn_2_h: 55,
+    ..BUILD
+};
+
 #[allow(dead_code)]
-const HURRY: Evaluator = Evaluator {
+pub const HURRY: Evaluator = Evaluator {
     name: "hurry",
     ..Evaluator::zero()
 };
-const ZENKESHI: Evaluator = Evaluator {
+pub const ZENKESHI: Evaluator = Evaluator {
     name: "zenkeshi",
     ..Evaluator::zero()
 };
 #[allow(dead_code)]
-const TSUBUSHI: Evaluator = Evaluator {
+pub const TSUBUSHI: Evaluator = Evaluator {
     name: "tsubushi",
     ..Evaluator::zero()
 };

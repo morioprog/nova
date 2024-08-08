@@ -79,6 +79,8 @@ pub fn select_best_evaluator(evaluators: Vec<Evaluator>) -> Evaluator {
                 }
             }
 
+            // TODO: penalize any unwanted small chains while building
+
             let mut lock = all_v.lock().unwrap();
             for i in 0..n {
                 (*lock)[i] = (*lock)[i] + sim_v[i];

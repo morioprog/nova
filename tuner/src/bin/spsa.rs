@@ -1,4 +1,4 @@
-use bot::evaluator::BUILD;
+use bot::evaluator::*;
 use itertools::izip;
 use nova_tuner::simulate::select_best_evaluator;
 use rand::Rng;
@@ -13,12 +13,12 @@ fn main() {
     // TODO: create macro to make this simpler?
     #[rustfmt::skip]
     let ptrs = [
-        ("bump", &mut eval.bump as *mut i32, -1, 10),
-        ("dent", &mut eval.dent as *mut i32, -1, 10),
+        // ("bump", &mut eval.bump as *mut i32, -1, 10),
+        // ("dent", &mut eval.dent as *mut i32, -1, 10),
         // ("dead_cells", &mut eval.dead_cells as *mut i32, -1, 10),
-        // ("conn_2_v", &mut eval.conn_2_v as *mut i32, 1, 10),
+        ("conn_2_v", &mut eval.conn_2_v as *mut i32, 1, 10),
         ("conn_2_h", &mut eval.conn_2_h as *mut i32, 1, 10),
-        // ("conn_3", &mut eval.conn_3 as *mut i32, 1, 10),
+        ("conn_3", &mut eval.conn_3 as *mut i32, 1, 10),
         // ("non_u_shape", &mut eval.non_u_shape as *mut i32, -1, 10),
         // ("non_u_shape_sq", &mut eval.non_u_shape_sq as *mut i32, -1, 10),
         // ("frame", &mut eval.frame as *mut i32, -1, 10),
