@@ -19,12 +19,14 @@ pub fn select_best_evaluator(
 }
 
 pub fn select_best_build_evaluator(player_state: &PlayerState) -> Evaluator {
-    // TODO: refine
-    if player_state.board.height_array()[1..=WIDTH]
+    let puyo_count = player_state.board.height_array()[1..=WIDTH]
         .iter()
-        .sum::<usize>()
-        >= 30
-    {
+        .sum::<usize>();
+
+    // TODO: we may want to use different evaluator if there's many ojamas?
+    if puyo_count >= 9 * WIDTH {
+        BUILD_ENDGAME
+    } else if puyo_count >= 5 * WIDTH {
         BUILD_MIDGAME
     } else {
         BUILD
@@ -54,6 +56,19 @@ pub const BUILD: Evaluator = Evaluator {
 
 pub const BUILD_MIDGAME: Evaluator = Evaluator {
     name: "build_mid",
+    bump: -70,
+    dent: -265,
+    non_u_shape_sq: -53,
+    conn_2_v: 110,
+    conn_2_h: 84,
+    detected_need: -32,
+    detected_keys: -555,
+    detected_score_per_k: 173,
+    ..BUILD
+};
+
+pub const BUILD_ENDGAME: Evaluator = Evaluator {
+    name: "build_end",
     bump: -70,
     dent: -265,
     non_u_shape_sq: -53,
