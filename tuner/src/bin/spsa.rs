@@ -25,7 +25,7 @@ macro_rules! features {
 
 fn main() {
     // Evaluator to tune
-    let mut eval = BUILD;
+    let mut eval = BUILD_MIDGAME;
 
     let targets: Vec<(
         &str,
@@ -36,17 +36,16 @@ fn main() {
         // [-, 10, bump],
         // [-, 10, dent],
         // [-, 10, dead_cells],
-        [+, 10, conn_2_h],
-        [+, 10, conn_2_v],
-        [+, 10, conn_3],
+        // [+, 10, conn_2_v],
+        // [+, 10, conn_2_h],
         // [-, 10, non_u_shape],
         // [-, 10, non_u_shape_sq],
         // [-, 10, frame],
         // [-, 10, frame_by_chain],
         // [-, 10, frame_by_chigiri],
-        // [-, 10, detected_need],
-        // [-, 10, detected_keys],
-        // [-, 10, detected_score_per_k],
+        [-, 10, detected_need],
+        [-, 10, detected_keys],
+        [+, 15, detected_score_per_k],
     ];
 
     let initial_values: Vec<(&str, i32)> = targets

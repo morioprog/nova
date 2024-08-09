@@ -38,7 +38,6 @@ pub const BUILD: Evaluator = Evaluator {
     dead_cells: -20,
     conn_2_v: 37,
     conn_2_h: 156,
-    conn_3: 104,
     ojama: -300,
     // U-shape
     non_u_shape: -4,
@@ -58,8 +57,11 @@ pub const BUILD_MIDGAME: Evaluator = Evaluator {
     bump: -70,
     dent: -265,
     non_u_shape_sq: -53,
-    conn_2_v: 83,
-    conn_2_h: 55,
+    conn_2_v: 110,
+    conn_2_h: 84,
+    detected_need: -80,
+    detected_keys: -401,
+    detected_score_per_k: 199,
     ..BUILD
 };
 

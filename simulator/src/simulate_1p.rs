@@ -12,7 +12,7 @@ pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>, think_frame: Option<u32>) -
     let mut decisions = vec![];
 
     // TODO: pass 50 as parameter
-    for _ in 0..40 {
+    for _ in 0..45 {
         let decision = nova.think(
             &player_state.limit_visible_tumos(visible),
             None,

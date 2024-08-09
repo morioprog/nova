@@ -1,7 +1,6 @@
 use bot::Nova;
 use nova_simulator::simulate_1p;
 
-// TODO: Specify (3, 22) as depth/width
 fn main() {
     let nova = Nova::default();
     let simulate_result = simulate_1p(nova, None, Some(2));

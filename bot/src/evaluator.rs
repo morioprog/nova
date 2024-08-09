@@ -23,7 +23,6 @@ pub struct Evaluator {
     pub dead_cells: i32,
     pub conn_2_v: i32,
     pub conn_2_h: i32,
-    pub conn_3: i32,
     pub ojama: i32,
     // U-shape
     pub non_u_shape: i32,
@@ -41,6 +40,11 @@ pub struct Evaluator {
 }
 
 impl Evaluator {
+    // Using this value as a standard
+    const fn conn_3(&self) -> i32 {
+        100
+    }
+
     pub fn evaluate(&self, player_state: &DetailedPlayerState) -> i32 {
         debug_assert!(player_state.board.popping_puyos().is_none());
 
@@ -62,7 +66,7 @@ impl Evaluator {
         let (conn_2_v, conn_2_h, conn_3) = player_state.board.connectivity();
         score += self.conn_2_v * conn_2_v;
         score += self.conn_2_h * conn_2_h;
-        score += self.conn_3 * conn_3;
+        score += self.conn_3() * conn_3;
 
         score += self.ojama * player_state.board.ojama_count();
 
@@ -107,7 +111,6 @@ impl Evaluator {
             dead_cells: 0,
             conn_2_v: 0,
             conn_2_h: 0,
-            conn_3: 0,
             ojama: 0,
             // U-shape
             non_u_shape: 0,
