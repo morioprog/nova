@@ -51,7 +51,10 @@ impl Ord for SimulateResult {
     }
 }
 
-pub fn select_best_evaluator_overrider(overriders: Vec<EvaluatorOverrider>) -> EvaluatorOverrider {
+pub fn select_best_evaluator_overrider(
+    overriders: Vec<EvaluatorOverrider>,
+    target_score: u32,
+) -> EvaluatorOverrider {
     let n = overriders.len();
     let simulate_results = Arc::new(Mutex::new(vec![SimulateResult::default(); n]));
 
@@ -75,8 +78,11 @@ pub fn select_best_evaluator_overrider(overriders: Vec<EvaluatorOverrider>) -> E
                     );
                     sim_v[i] = sim_v[i]
                         + SimulateResult {
-                            // TODO: pass 50000 as parameter
-                            chain_success: if result.score >= 80000 { 1 } else { 0 },
+                            chain_success: if result.max_chain.score() >= target_score {
+                                1
+                            } else {
+                                0
+                            },
                             score: result.score,
                             tumos: result.decisions.len() as u32,
                         }

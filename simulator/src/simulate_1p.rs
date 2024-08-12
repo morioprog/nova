@@ -1,4 +1,4 @@
-use core::{player_state::PlayerState, tumo::Tumos};
+use core::{chain::Chain, player_state::PlayerState, tumo::Tumos};
 
 use bot::Nova;
 
@@ -10,9 +10,10 @@ pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>, think_frame: Option<u32>) -
 
     let mut player_state = PlayerState::initial_state(tumos.unwrap_or(Tumos::new_random()));
     let mut decisions = vec![];
+    let mut max_chain = Chain::default();
 
-    // TODO: pass 50 as parameter
-    for _ in 0..45 {
+    // TODO: pass 54 as parameter
+    for _ in 0..54 {
         let decision = nova.think(
             &player_state.limit_visible_tumos(visible),
             None,
@@ -37,11 +38,8 @@ pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>, think_frame: Option<u32>) -
 
         let chain = player_state.board.simulate();
         player_state.frame += chain.frame();
-        // TODO: pass 70000 as parameter
-        if chain.score() >= 80000 {
-            player_state.score += chain.score(); // TODO: temporary
-            break;
-        }
+        player_state.score += chain.score();
+        max_chain = max_chain.max(chain);
 
         if player_state.board.is_dead() {
             break;
@@ -52,6 +50,7 @@ pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>, think_frame: Option<u32>) -
 
     Simulate1PResult {
         score: player_state.score,
+        max_chain,
         visible,
         decisions,
         tumos: player_state.tumos,

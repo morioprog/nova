@@ -25,7 +25,7 @@ macro_rules! features {
 
 fn main() {
     // Evaluator to tune
-    let mut eval = BUILD_MIDGAME;
+    let mut eval = BUILD_ENDGAME;
 
     let targets: Vec<(
         &str,
@@ -33,19 +33,21 @@ fn main() {
         fn(Evaluator, i32) -> Evaluator,
         fn(&Evaluator) -> i32,
     )> = features![
-        // [-, 10, bump],
-        // [-, 10, dent],
+        [-, 10, bump],
+        [-, 10, dent],
         // [-, 10, dead_cells],
-        // [+, 10, conn_2_v],
-        // [+, 10, conn_2_h],
+        // [+, 15, conn_2_v],
+        // [+, 15, conn_2_h],
         // [-, 10, non_u_shape],
-        // [-, 10, non_u_shape_sq],
+        // [-, 5, non_u_shape_sq],
         // [-, 10, frame],
         // [-, 10, frame_by_chain],
         // [-, 10, frame_by_chigiri],
         [-, 10, detected_need],
-        [-, 10, detected_keys],
-        [+, 15, detected_score_per_k],
+        // [+, 10, detected_score_per_k],
+
+        // no-op since max_depth in detect_potential_chain is 1
+        // [-, 10, detected_keys],
     ];
 
     let initial_values: Vec<(&str, i32)> = targets
@@ -69,7 +71,7 @@ fn main() {
             let o_pos: EvaluatorOverrider = (eval.name, w_pos);
             let o_neg: EvaluatorOverrider = (eval.name, w_neg);
 
-            let best_o = select_best_evaluator_overrider(vec![o_org, o_pos, o_neg]);
+            let best_o = select_best_evaluator_overrider(vec![o_neg, o_pos, o_org], 85000);
             eval = best_o.1;
         }
 

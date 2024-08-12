@@ -62,7 +62,7 @@ pub const BUILD_MIDGAME: Evaluator = Evaluator {
     conn_2_v: 110,
     conn_2_h: 84,
     detected_need: -32,
-    detected_keys: -555,
+    detected_keys: 0,
     detected_score_per_k: 173,
     ..BUILD
 };
@@ -75,9 +75,9 @@ pub const BUILD_ENDGAME: Evaluator = Evaluator {
     conn_2_v: 110,
     conn_2_h: 84,
     detected_need: -80,
-    detected_keys: -401,
+    detected_keys: 0,
     detected_score_per_k: 199,
-    ..BUILD
+    ..BUILD_MIDGAME
 };
 
 #[allow(dead_code)]

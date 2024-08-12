@@ -3,11 +3,10 @@ use nova_simulator::simulate_1p;
 
 const SIMULATE_N: usize = 1000;
 
-// As of Aug 9th 2024
-// >=  80k: 83.8%
-// >=  90k: 41.9%
-// >= 100k: 16.1%
-// TODO: Specify (6, 22) as depth/width
+// As of Aug 10th 2024
+// >=  80k: 83.2%
+// >=  90k: 44.0%
+// >= 100k: 17.5%
 fn main() {
     let mut score_cnt = [0; 20];
     let mut think_ms_avg = 0.0;
@@ -22,7 +21,7 @@ fn main() {
             / simulate_result.decisions.len() as f64;
 
         for i in 0..score_cnt.len() {
-            if simulate_result.score as usize >= i * 10000 {
+            if simulate_result.max_chain.score() as usize >= i * 10000 {
                 score_cnt[i] += 1;
             }
         }
