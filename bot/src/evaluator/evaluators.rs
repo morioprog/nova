@@ -38,8 +38,8 @@ pub const BUILD: Evaluator = Evaluator {
     bump: -34,
     dent: -119,
     dead_cells: -20,
-    conn_2_v: 37,
-    conn_2_h: 156,
+    conn_2_v: 36,
+    conn_2_h: 119,
     ojama: -300,
     // U-shape
     non_u_shape: -4,
@@ -51,7 +51,8 @@ pub const BUILD: Evaluator = Evaluator {
     // Detected chains
     detected_need: -6,
     detected_keys: 0,
-    detected_score_per_k: 112,
+    detected_chain: 182,
+    detected_score_per_k: 90,
 };
 
 pub const BUILD_MIDGAME: Evaluator = Evaluator {
@@ -59,24 +60,26 @@ pub const BUILD_MIDGAME: Evaluator = Evaluator {
     bump: -70,
     dent: -265,
     non_u_shape_sq: -53,
-    conn_2_v: 110,
-    conn_2_h: 84,
-    detected_need: -32,
+    conn_2_v: 173,
+    conn_2_h: 9,
+    detected_need: -63,
     detected_keys: 0,
-    detected_score_per_k: 173,
+    detected_chain: 393,
+    detected_score_per_k: 147,
     ..BUILD
 };
 
 pub const BUILD_ENDGAME: Evaluator = Evaluator {
     name: "build_end",
-    bump: -70,
-    dent: -265,
+    bump: -44,
+    dent: -284,
     non_u_shape_sq: -53,
-    conn_2_v: 110,
-    conn_2_h: 84,
-    detected_need: -80,
+    conn_2_v: 40,
+    conn_2_h: 50,
+    detected_need: -100,
     detected_keys: 0,
-    detected_score_per_k: 199,
+    detected_chain: 650,
+    detected_score_per_k: 183,
     ..BUILD_MIDGAME
 };
 

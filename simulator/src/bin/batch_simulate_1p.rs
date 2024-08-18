@@ -3,10 +3,10 @@ use nova_simulator::simulate_1p;
 
 const SIMULATE_N: usize = 1000;
 
-// As of Aug 10th 2024
-// >=  80k: 83.2%
-// >=  90k: 44.0%
-// >= 100k: 17.5%
+// As of Aug 17th 2024
+// >=  80k: 85.3%
+// >=  90k: 45.7%
+// >= 100k: 19.1%
 fn main() {
     let mut score_cnt = [0; 20];
     let mut think_ms_avg = 0.0;

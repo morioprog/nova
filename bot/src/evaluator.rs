@@ -34,6 +34,7 @@ pub struct Evaluator {
     // Detected chains
     pub detected_need: i32,
     pub detected_keys: i32,
+    pub detected_chain: i32,
     /// Sum of scores of detected chains divided by 1024.
     /// (Using 1024 instead of 1000 (<=> "k") since the division can be done by a simple bit shift.)
     pub detected_score_per_k: i32,
@@ -90,6 +91,7 @@ impl Evaluator {
                 let keys = cp.sum() as i32 - need;
                 detected_score_tmp += self.detected_keys * keys;
 
+                detected_score_tmp += self.detected_chain * chain.chain() as i32;
                 // devide by 1024
                 detected_score_tmp += self.detected_score_per_k * (chain.score() >> 10) as i32;
 
@@ -122,6 +124,7 @@ impl Evaluator {
             // Detected chains
             detected_need: 0,
             detected_keys: 0,
+            detected_chain: 0,
             detected_score_per_k: 0,
         }
     }

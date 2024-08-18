@@ -13,8 +13,13 @@ impl ChainPicker for Houwa {
         // TODO: refine
         chains
             .iter()
-            .max_by(|a, b| a.chain.score().cmp(&b.chain.score()))
+            .max_by(|a, b| {
+                a.chain
+                    .chain()
+                    .cmp(&b.chain.chain())
+                    .then_with(|| a.chain.score().cmp(&b.chain.score()))
+            })
             .cloned()
-            .filter(|d| d.chain.score() >= 80000)
+            .filter(|d| d.chain.score() >= 85000)
     }
 }
