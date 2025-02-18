@@ -1,7 +1,7 @@
 cargo-features = ["profile-rustflags"]
 
 [workspace]
-members = ["core", "bot", "simulator", "tuner"]
+members = ["core", "bot", "simulator", "tuner", "upi"]
 resolver = "2"
 
 [profile.release]
