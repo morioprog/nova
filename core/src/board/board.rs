@@ -19,6 +19,20 @@ impl Board {
         Self(BoardBits::wall(), BoardBits::zero(), BoardBits::zero())
     }
 
+    pub fn from_pfen(pfen: &str) -> Self {
+        let pfen = &pfen[..pfen.len() - 1];
+        let cols: Vec<&str> = pfen.split('/').collect();
+        debug_assert_eq!(cols.len(), 6);
+
+        let mut board = Self::new();
+        for (x, col) in cols.iter().enumerate() {
+            for (y, puyo_c) in col.chars().enumerate() {
+                board.set(x + 1, y + 1, PuyoColor::from(puyo_c));
+            }
+        }
+        board
+    }
+
     pub fn get(&self, x: usize, y: usize) -> PuyoColor {
         let b0 = self.0.get(x, y);
         let b1 = self.1.get(x, y) << 1;
@@ -338,6 +352,30 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn from_pfen() {
+        assert_eq!(Board::from_pfen("//////"), Board::new());
+        assert_eq!(Board::from_pfen("r/g/b/y/o/r/"), Board::from("rgbyor"));
+        assert_eq!(Board::from_pfen(
+            "rrryrrrgryry/yyygyggbgbbb/gggbybbybyyby/bbbrbyyryrryr/rrrbyrrgrggrg/yyybbggbbbgbg/"),
+            Board::from(concat!(
+                "..YRGG", // 13
+                "YBBYRB", // 12
+                "RBYRGG", // 11
+                "YBYRGB", // 10
+                "RGBYRB", // 9
+                "GBYRGB", // 8
+                "RGBYRG", // 7
+                "RGBYRG", // 6
+                "RYYBYB", // 5
+                "YGBRBB", // 4
+                "RYGBRY", // 3
+                "RYGBRY", // 2
+                "RYGBRY", // 1
+            ))
+        );
     }
 
     #[test]
