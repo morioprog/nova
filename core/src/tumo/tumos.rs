@@ -157,6 +157,21 @@ impl<C: Color> Index<usize> for PairQueue<C> {
     }
 }
 
+impl<C: Color + From<char>> From<&str> for PairQueue<C> {
+    fn from(value: &str) -> Self {
+        debug_assert!(value.len() % 2 == 0 && value.len() >= 2 && value.len() <= 2 * TUMO_LOOP);
+
+        Self::new(
+            &value
+                .chars()
+                .collect::<Vec<_>>()
+                .chunks(2)
+                .map(|s| Pair::<C>::from((s[0], s[1])))
+                .collect::<Vec<_>>(),
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::any::Any;
@@ -187,6 +202,15 @@ mod tests {
 
         assert_eq!(tumos.len(), pairs.len());
         assert_eq!(tumos[0], pairs[0]);
+    }
+
+    #[test]
+    fn from_str() {
+        let tumos = Tumos::from("rbyygr");
+        assert_eq!(tumos.len(), 3);
+        assert_eq!(tumos[0], Tumo::new(RED, BLUE));
+        assert_eq!(tumos[1], Tumo::new(YELLOW, YELLOW));
+        assert_eq!(tumos[2], Tumo::new(GREEN, RED));
     }
 
     #[test]

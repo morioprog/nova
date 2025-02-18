@@ -43,6 +43,14 @@ impl Pair<PuyoColor> {
     }
 }
 
+impl<C: Color + From<char>> From<(char, char)> for Pair<C> {
+    fn from(value: (char, char)) -> Self {
+        let axis = value.0.into();
+        let child = value.1.into();
+        Self { axis, child }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -53,6 +61,12 @@ mod tests {
         let tumo = Tumo::new(BLUE, RED);
         assert_eq!(tumo.axis(), BLUE);
         assert_eq!(tumo.child(), RED);
+    }
+
+    #[test]
+    fn from_chars() {
+        assert_eq!(Tumo::from(('r', 'b')), Tumo::new(RED, BLUE));
+        assert_eq!(Tumo::from(('y', 'y')), Tumo::new(YELLOW, YELLOW));
     }
 
     #[test]
