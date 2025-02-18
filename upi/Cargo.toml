@@ -1,0 +1,10 @@
+[package]
+name = "nova-upi"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+core = { path = "../core", package = "nova-core" }
+bot = { path = "../bot", package = "nova-bot" }
+env_logger = "0.11.6"
+log = "0.4.25"
