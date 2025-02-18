@@ -50,6 +50,22 @@ impl From<u8> for RealColor {
     }
 }
 
+impl From<char> for RealColor {
+    fn from(value: char) -> Self {
+        match value {
+            ' ' | '.' => RealColor::EMPTY,
+            'O' | 'o' | '@' => RealColor::OJAMA,
+            '#' => RealColor::WALL,
+            'R' | 'r' => RealColor::RED,
+            'G' | 'g' => RealColor::GREEN,
+            'B' | 'b' => RealColor::BLUE,
+            'Y' | 'y' => RealColor::YELLOW,
+            'P' | 'p' => RealColor::PURPLE,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<RealColor> for u8 {
     fn from(value: RealColor) -> Self {
         match value {
@@ -75,6 +91,14 @@ mod tests {
         assert_eq!(u8::from(RealColor::WALL), b'#');
         assert_eq!(u8::from(RealColor::RED), b'R');
         assert_eq!(u8::from(RealColor::PURPLE), b'P');
+    }
+
+    #[test]
+    fn from_char() {
+        assert_eq!(RealColor::from(' '), RealColor::EMPTY);
+        assert_eq!(RealColor::from('#'), RealColor::WALL);
+        assert_eq!(RealColor::from('R'), RealColor::RED);
+        assert_eq!(RealColor::from('p'), RealColor::PURPLE);
     }
 
     #[test]
