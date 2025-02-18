@@ -70,6 +70,22 @@ impl From<u8> for PuyoColor {
     }
 }
 
+impl From<char> for PuyoColor {
+    fn from(value: char) -> Self {
+        match value {
+            ' ' | '.' => PuyoColor::EMPTY,
+            '#' => PuyoColor::WALL,
+            'O' | 'o' | '@' => PuyoColor::OJAMA,
+            '&' => PuyoColor::IRON,
+            'R' | 'r' => PuyoColor::RED,
+            'G' | 'g' => PuyoColor::GREEN,
+            'B' | 'b' => PuyoColor::BLUE,
+            'Y' | 'y' => PuyoColor::YELLOW,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<PuyoColor> for u8 {
     fn from(value: PuyoColor) -> Self {
         match value {
@@ -108,6 +124,14 @@ mod tests {
         assert_eq!(u8::from(PuyoColor::WALL), b'#');
         assert_eq!(u8::from(PuyoColor::RED), b'R');
         assert_eq!(u8::from(PuyoColor::BLUE), b'B');
+    }
+
+    #[test]
+    fn from_char() {
+        assert_eq!(PuyoColor::from(' '), PuyoColor::EMPTY);
+        assert_eq!(PuyoColor::from('#'), PuyoColor::WALL);
+        assert_eq!(PuyoColor::from('R'), PuyoColor::RED);
+        assert_eq!(PuyoColor::from('b'), PuyoColor::BLUE);
     }
 
     #[test]
