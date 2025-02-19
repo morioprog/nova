@@ -172,6 +172,16 @@ impl<C: Color + From<char>> From<&str> for PairQueue<C> {
     }
 }
 
+impl<C: Color + Into<char>> std::fmt::Display for PairQueue<C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = String::new();
+        for i in 0..self.available_tumo_len() {
+            s.push_str(&self[i].to_string());
+        }
+        write!(f, "{}", s)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::any::Any;
@@ -211,6 +221,16 @@ mod tests {
         assert_eq!(tumos[0], Tumo::new(RED, BLUE));
         assert_eq!(tumos[1], Tumo::new(YELLOW, YELLOW));
         assert_eq!(tumos[2], Tumo::new(GREEN, RED));
+    }
+
+    #[test]
+    fn to_string() {
+        let tumos = Tumos::new(&[
+            Tumo::new(RED, RED),
+            Tumo::new(BLUE, YELLOW),
+            Tumo::new(GREEN, RED),
+        ]);
+        assert_eq!(tumos.to_string(), "rrbygr");
     }
 
     #[test]
