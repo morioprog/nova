@@ -101,6 +101,21 @@ impl From<PuyoColor> for u8 {
     }
 }
 
+impl From<PuyoColor> for char {
+    fn from(value: PuyoColor) -> Self {
+        match value {
+            PuyoColor::EMPTY => ' ',
+            PuyoColor::WALL => '#',
+            PuyoColor::OJAMA => 'o',
+            PuyoColor::IRON => '&',
+            PuyoColor::RED => 'r',
+            PuyoColor::GREEN => 'g',
+            PuyoColor::BLUE => 'b',
+            PuyoColor::YELLOW => 'y',
+        }
+    }
+}
+
 impl std::fmt::Display for PuyoColor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}  \x1b[0m", self.bg_escape_sequence())
