@@ -81,6 +81,21 @@ impl From<RealColor> for u8 {
     }
 }
 
+impl From<RealColor> for char {
+    fn from(value: RealColor) -> Self {
+        match value {
+            RealColor::EMPTY => ' ',
+            RealColor::WALL => '#',
+            RealColor::OJAMA => 'o',
+            RealColor::RED => 'r',
+            RealColor::GREEN => 'g',
+            RealColor::BLUE => 'b',
+            RealColor::YELLOW => 'y',
+            RealColor::PURPLE => 'p',
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

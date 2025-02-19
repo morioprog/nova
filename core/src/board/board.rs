@@ -33,6 +33,20 @@ impl Board {
         board
     }
 
+    pub fn to_pfen(&self) -> String {
+        let mut pfen = String::new();
+        let heights = self.height_array();
+
+        for x in 1..=WIDTH {
+            for y in 1..=heights[x] {
+                pfen.push(self.get(x, y).into());
+            }
+            pfen.push('/');
+        }
+
+        pfen
+    }
+
     pub fn get(&self, x: usize, y: usize) -> PuyoColor {
         let b0 = self.0.get(x, y);
         let b1 = self.1.get(x, y) << 1;
@@ -375,6 +389,31 @@ mod tests {
                 "RYGBRY", // 2
                 "RYGBRY", // 1
             ))
+        );
+    }
+
+    #[test]
+    fn to_pfen() {
+        assert_eq!(Board::new().to_pfen(), "//////");
+        assert_eq!(Board::from("rgbyor").to_pfen(), "r/g/b/y/o/r/");
+        assert_eq!(
+            Board::from(concat!(
+                "..YRGG", // 13
+                "YBBYRB", // 12
+                "RBYRGG", // 11
+                "YBYRGB", // 10
+                "RGBYRB", // 9
+                "GBYRGB", // 8
+                "RGBYRG", // 7
+                "RGBYRG", // 6
+                "RYYBYB", // 5
+                "YGBRBB", // 4
+                "RYGBRY", // 3
+                "RYGBRY", // 2
+                "RYGBRY", // 1
+            ))
+            .to_pfen(),
+            "rrryrrrgryry/yyygyggbgbbb/gggbybbybyyby/bbbrbyyryrryr/rrrbyrrgrggrg/yyybbggbbbgbg/"
         );
     }
 
