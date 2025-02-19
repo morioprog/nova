@@ -51,6 +51,14 @@ impl<C: Color + From<char>> From<(char, char)> for Pair<C> {
     }
 }
 
+impl<C: Color + Into<char>> std::fmt::Display for Pair<C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let axis_c: char = self.axis.into();
+        let child_c: char = self.child.into();
+        write!(f, "{}{}", axis_c, child_c)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -95,5 +103,10 @@ mod tests {
         for _ in 0..100 {
             assert!(Tumo::new_random().is_valid());
         }
+    }
+
+    #[test]
+    fn to_string() {
+        assert_eq!(Tumo::new(RED, GREEN).to_string(), "rg");
     }
 }
