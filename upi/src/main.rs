@@ -38,7 +38,7 @@ fn main() {
 }
 
 fn setup_logger() {
-    std::env::set_var("RUST_LOG", "debug");
+    std::env::set_var("RUST_LOG", "info");
     env_logger::Builder::from_default_env()
         .format(|buf, record| {
             let ts = buf.timestamp();
