@@ -1,3 +1,4 @@
+use core::ojama::FPS;
 use std::io::Write;
 
 use bot::Nova;
@@ -28,7 +29,7 @@ fn main() {
                 player_states.expect("player_states should be present");
 
             let think_ms = Upi::receive_go();
-            let think_frame = think_ms * 60 / 1000; // 60 frame/sec
+            let think_frame = think_ms * FPS / 1000;
 
             let decision = nova.think(&player_state_1p, Some(&player_state_2p), Some(think_frame));
             let placement = decision.placements.first().unwrap();
