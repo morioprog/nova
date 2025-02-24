@@ -20,7 +20,7 @@ pub const fn horizontal_move_frames(x: usize) -> u32 {
 }
 
 /// Please pass `y` of the destination cell as a parameter.
-pub fn vertical_move_frames(y: usize) -> u32 {
+pub const fn vertical_move_frames(y: usize) -> u32 {
     debug_assert!(1 <= y && y <= 15);
     VERTICAL_MOVE_FRAMES[y]
 }
