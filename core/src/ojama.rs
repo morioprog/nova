@@ -7,6 +7,9 @@ use crate::{
     color::PuyoColor,
 };
 
+// 60 frames/sec
+pub const FPS: u32 = 60;
+
 /// 各マスごとのお邪魔による硬直フレーム数
 const OJAMA_FRAMES_BY_POSITION: &[&[u32; WIDTH + 1]; 15] = &[
     &[0, 0, 0, 0, 0, 0, 0],
@@ -40,6 +43,34 @@ pub const fn ojama_frames_by_position(x: usize, y: usize) -> u32 {
 pub const fn ojama_frames_by_quantity(quan: usize) -> u32 {
     debug_assert!(1 <= quan && quan <= 30);
     OJAMA_FRAMES_BY_QUANTITY[quan as usize]
+}
+
+pub const fn ojama_rate(frame: u32) -> u32 {
+    if frame < 96 * FPS {
+        70
+    } else if frame < 112 * FPS {
+        52
+    } else if frame < 128 * FPS {
+        34
+    } else if frame < 144 * FPS {
+        25
+    } else if frame < 160 * FPS {
+        16
+    } else if frame < 176 * FPS {
+        12
+    } else if frame < 192 * FPS {
+        8
+    } else if frame < 208 * FPS {
+        6
+    } else if frame < 224 * FPS {
+        4
+    } else if frame < 240 * FPS {
+        3
+    } else if frame < 256 * FPS {
+        2
+    } else {
+        1
+    }
 }
 
 impl Board {
