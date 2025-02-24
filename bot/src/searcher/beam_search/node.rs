@@ -41,9 +41,10 @@ impl Node {
     pub fn place_tumo(&self, tumo: &Tumo, placement: &Placement, evaluator: &Evaluator) -> Self {
         let mut new_player_state = self.player_state.clone();
         new_player_state.frame_by_chigiri += new_player_state.board.chigiri_frames(placement);
-        let place_frame = new_player_state.board.place_tumo(tumo, placement).unwrap();
+        let (place_frame, bonus) = new_player_state.board.place_tumo(tumo, placement).unwrap();
         new_player_state.frame += place_frame;
         new_player_state.frame_since_control_start += place_frame;
+        new_player_state.carry_over += bonus;
 
         let mut new_placements = self.placements.clone();
         new_placements.push(*placement);

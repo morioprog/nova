@@ -28,8 +28,9 @@ pub fn simulate_1p(nova: Nova, tumos: Option<Tumos>, think_frame: Option<u32>) -
         let place_frame = player_state
             .board
             .place_tumo(&player_state.tumos[0], placement);
-        if let Some(frame) = place_frame {
+        if let Some((frame, bonus)) = place_frame {
             player_state.frame += frame;
+            player_state.carry_over += bonus;
         } else {
             println!("unplaceable...");
             break;

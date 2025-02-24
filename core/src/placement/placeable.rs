@@ -5,10 +5,14 @@ use crate::{
 };
 
 impl Board {
-    pub fn place_tumo(&mut self, tumo: &Tumo, placement: &Placement) -> Option<u32> {
+    // return control frame and press-down bonus
+    pub fn place_tumo(&mut self, tumo: &Tumo, placement: &Placement) -> Option<(u32, u32)> {
         let frame = self.place_frames(placement)?;
+        let mut press_down_bonus = 13 - self.height_array()[placement.axis_x()];
 
         let (axis, child) = if placement.rot() == 2 {
+            // rot=2 is faster, but less press-down bonus
+            press_down_bonus -= 1;
             (tumo.child(), tumo.axis())
         } else {
             (tumo.axis(), tumo.child())
@@ -17,7 +21,7 @@ impl Board {
         self.place_puyo(placement.axis_x(), axis);
         self.place_puyo(placement.child_x(), child);
 
-        Some(frame)
+        Some((frame, press_down_bonus as u32))
     }
 
     pub fn valid_placements(&self, is_zoro: bool) -> Vec<&Placement> {

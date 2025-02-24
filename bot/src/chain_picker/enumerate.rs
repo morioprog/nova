@@ -83,9 +83,10 @@ impl Node {
     /// Returns (Node after placing Tumo, true if fired something)
     fn place_tumo(&self, tumo: &Tumo, placement: &Placement) -> (Self, bool) {
         let mut new_player_state = self.0.clone();
-        let place_frame = new_player_state.board.place_tumo(tumo, placement).unwrap();
+        let (place_frame, bonus) = new_player_state.board.place_tumo(tumo, placement).unwrap();
         let fired = new_player_state.board.simulate();
         new_player_state.frame += place_frame + fired.frame();
+        new_player_state.carry_over += bonus;
 
         let mut new_placements = self.1.clone();
         new_placements.push(*placement);
