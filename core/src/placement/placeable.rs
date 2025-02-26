@@ -38,13 +38,13 @@ impl Board {
         self.place_frames(placement).is_some()
     }
 
-    // TODO: frame estimation (chigiri, vertical/horizontal move) & test
     pub fn place_frames(&self, placement: &Placement) -> Option<u32> {
         debug_assert!(placement.is_valid());
 
         let heights = self.height_array();
         let (x, r) = (placement.axis_x(), placement.rot());
-        let basic_frames = self.basic_place_frames(placement);
+        let place_frames = ((self.basic_place_frames(placement) as i32)
+            + self.real_place_frames(placement)) as u32;
 
         // child puyo cannot be placed on 14th row
         if r == 2 && heights[x] >= HEIGHT {
@@ -62,7 +62,7 @@ impl Board {
 
         // either (3, 0) or (3, 2)
         if x == 3 {
-            return Some(basic_frames);
+            return Some(place_frames);
         }
 
         let x_rng = if x < 3 { x..=2 } else { 4..=x };
@@ -70,12 +70,12 @@ impl Board {
             return None;
         }
         if x_rng.clone().all(|x| heights[x] < HEIGHT) {
-            return Some(basic_frames);
+            return Some(place_frames);
         }
 
         if x < 3 {
             if heights[2] == HEIGHT && heights[4] >= HEIGHT {
-                return Some(basic_frames);
+                return Some(place_frames);
             }
 
             let mut max_frames = 0;
@@ -89,7 +89,7 @@ impl Board {
 
                 for j in (i + 1)..=WIDTH {
                     if heights[j] == HEIGHT - 1 {
-                        frames = Some(basic_frames);
+                        frames = Some(place_frames);
                         break;
                     }
                     if heights[j] > HEIGHT {
@@ -113,7 +113,7 @@ impl Board {
         // x > 3 below here
 
         if heights[4] == HEIGHT && heights[2] >= HEIGHT {
-            return Some(basic_frames);
+            return Some(place_frames);
         }
 
         let mut max_frames = 0;
@@ -127,7 +127,7 @@ impl Board {
 
             for j in (1..=(i - 1)).rev() {
                 if heights[j] == HEIGHT - 1 {
-                    frames = Some(basic_frames);
+                    frames = Some(place_frames);
                     break;
                 }
                 if heights[j] > HEIGHT {

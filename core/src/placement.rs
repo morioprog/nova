@@ -1,9 +1,10 @@
 use self::placement::{PLACEMENTS, PLACEMENTS_ZORO};
 use crate::board::WIDTH;
 
-pub mod frame;
+pub mod basic_frame;
 pub mod placeable;
 mod placement;
+pub mod real_frame;
 
 #[derive(Clone, Copy, Default, Debug, PartialEq)]
 pub struct Placement(usize, usize);
